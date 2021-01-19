@@ -1,0 +1,1 @@
+# Pulls a json config file from a standard location. Gets global configurations for the auto packager out of the json config file. This will need to be determined when building get/set config functions.
