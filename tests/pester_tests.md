@@ -1,0 +1,1 @@
+This directory is were pester test files are stored.  They should be named using the Function-Name.Tests.ps1 format.
