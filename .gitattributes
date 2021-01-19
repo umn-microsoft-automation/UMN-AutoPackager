@@ -1,0 +1,21 @@
+# Set default behaviour, in case users don't have core.autocrlf set.
+* text=auto
+
+# Explicitly declare text files we want to always be normalized and converted
+# to native line endings on checkout.
+*.md            text
+*.gitattributes text
+
+# Declare files that will always have CRLF line endings on checkout.
+*.ps1    text  working-tree-encoding=UTF-8  eol=crlf
+*.psm1   text  working-tree-encoding=UTF-8  eol=crlf
+*.psd1   text  working-tree-encoding=UTF-8  eol=crlf
+*.psc1   text  working-tree-encoding=UTF-8  eol=crlf
+*.ps1xml text  working-tree-encoding=UTF-8  eol=crlf
+*.clixml text  working-tree-encoding=UTF-8  eol=crlf
+*.xml    text  working-tree-encoding=UTF-8  eol=crlf
+*.txt    text  working-tree-encoding=UTF-8  eol=crlf
+
+# Denote all files that are truly binary and should not be mergeable.
+*.dll binary
+*.exe binary
