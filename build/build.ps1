@@ -13,7 +13,7 @@ Install-Module -Name Pester -Force -SkipPublisherCheck
 Install-Module -Name psake, PSDeploy, BuildHelpers -Force
 Import-Module -Name psake, BuildHelpers
 
-(Get-ChildItem).FullName | Write-Warning
+(Get-ChildItem -Recurse).FullName | Write-Warning
 
 Set-BuildEnvironment
 
