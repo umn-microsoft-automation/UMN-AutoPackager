@@ -1,0 +1,11 @@
+{
+    "Publisher"     : "Mozilla",
+    "ProductName"   : "Firefox",
+    "OldVersion"    : "82.0.3",
+    "VersionSource" : "Filename",
+    "Source"        : "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US",
+    "DownloadPath"  : "C:\\Temp\\UMNAutoPackager\\Downloads",
+    "BuildPath"     : "C:\\Temp\\UMNAutoPackager\\Applications",
+    "BuildType"     : "Baseline",
+    "ConfigNotes"   : "General comments about this config file"
+}
