@@ -1,9 +1,9 @@
 {
-    "Publisher"     : "Mozilla",
-    "ProductName"   : "Firefox",
-    "OldVersion"    : "82.0.3",
-    "VersionSource" : "Filename",
-    "Source"        : "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US",
-    "BuildType"     : "Baseline",
-    "ConfigNotes"   : "General comments about this config file"
+    "publisher"     : "Mozilla",
+    "productName"   : "Firefox",
+    "description" : "app description",
+    "currentVersion"    : "82.0.3",
+    "versionSource" : "Filename",
+    "sourcePath"        : "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US",
+    "configNotes"   : "General comments about this config file",
 }
