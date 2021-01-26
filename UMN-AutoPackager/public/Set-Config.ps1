@@ -9,7 +9,7 @@ function Set-Config {
     [CmdletBinding()]
     param (
         [string]$Path,
-        [string]$Name,
+        [string]$Key,
         [string]$Value
     )
     begin {
@@ -17,28 +17,46 @@ function Set-Config {
     process {
         $json = Get-Content $Path -Raw
         $config = ConvertFrom-Json -InputObject $json
-        $Names = $config | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
-        foreach ($name in $Names) {
-            if ($config.$name -eq "PSCustomObject") {
-                $NewNames = $Config.$Name | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
-                foreach ($newname in $NewNames) {
-                    # check against the $name and update the value with the new one
+        $Keys = $config | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
+        foreach ($k in $Keys) {
+            if ($config.$k.gettype().Name -eq 'String') {
+                Write-Output "This $k is a string."
+                if ($k -eq $Key) {
+                    Write-output "Found $k setting new value. "
+                    $config.$k = $Value
+                    Write-Output $config
                 }
             }
-            elseif ($config.$name -eq "String") {
-                # Check against the $name and update the value with the new one
+            else{
+                $Type = "Not String"
+                Write-Output "Not String"
+            }
+            if ($Type -eq "Not String") {
+               Write-Output "Type is not string and is Array"
+               if ($k -eq $Key) {
+                   Write-Output "Found $k adding additional value."
+                   [System.collections.ArrayList]$new = $config.$k
+                   $new.add("$value")
+                   $config.$k = $new
+                   Write-Output $config
+               }
+            }
+            else{
+                Write-Output "This is not a Array"
             }
         }
     }
     end {
     }
 }
-
-<# [PSCustomObject]@{
+Set-Config -Path C:\Users\thoen008\Desktop\GlobalConfig.json -Key "RecipeLocations" -Value "C:\MyProgram"
+<# $locations = New-Object 'System.Collections.Generic.list[string]'
+$locations.add("C:\Temp")
+$locations.add("\\files.somewhere\")
+[PSCustomObject]@{
     CompanyName = "MyCompany"
     LastModified = (Get-Date).ToString()
-    ConfigMgr = @{Site = "site.something.com"
-                 SiteCode = "COM"}
-    RecipeLocations = @{Location1 = "C:\Temp"
-                     Location2 = "\\files.somewhere\"}
+    ConfigMgrSite = "site.something.com"
+    ConfigMgrSiteCode = "COM"
+    RecipeLocations = $locations
 } | convertto-json | Set-Content C:\Users\thoen008\Desktop\GlobalConfig.json #>

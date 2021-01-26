@@ -1,6 +1,10 @@
 {
-    "CompanyName"       :   "Your Company Name",
-    "LastModified"      :   "Enter Date",
-    "RecipeLocations"   :   [{"Location1" : "C:\\temp"}, {"Location2" : "\\\files.something.somewhere\\"}],
-    "ConfigMgr"         :   [{"Site" : "YourSite"}, {"SiteCode" : "CON"}]
+  "CompanyName": "MyCompany",
+  "LastModified": "1/26/2021 9:15:47 AM",
+  "ConfigMgrSite": "site.something.com",
+  "ConfigMgrSiteCode": "COM",
+  "RecipeLocations": [
+    "C:\\Temp",
+    "\\\\files.somewhere\\"
+  ]
 }
