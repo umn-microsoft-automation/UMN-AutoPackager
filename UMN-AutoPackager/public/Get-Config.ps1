@@ -13,4 +13,4 @@ function Get-Config {
     end {
     }
 }
-$test = Get-Config -path C:\Users\thoen008\Desktop\GlobalConfig.json
+Get-Config -path C:\Users\thoen008\Desktop\GlobalConfig.json
