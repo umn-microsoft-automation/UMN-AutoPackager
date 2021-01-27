@@ -1,7 +1,19 @@
-# Set-Config -Path .\config.json -Object ConfigMgr -Name SiteCode  -Value "UMN"
-# Set-Config -Path .\config.json -Name Company  -Value "University of Minnesota"
-# (Get-CMSite).SiteCode | Set-Config -Path .\config.json -Object ConfigMgr  -Name SiteCode
 function Set-Config {
+    <#
+    .SYNOPSIS
+        Sets a value for the global configuration JSON file for the auto packager.
+    .DESCRIPTION
+        This command sets in a json file a value for one of various global configurations used as part of the AutoPackager. It requires a the full path and name of the JSON file, the key to set, and the value to set it to.
+    .EXAMPLE
+        Set-Config -Path .\config.json -Key CompanyName  -Value "University of Minnesota"
+        Sets the value of CompanyName to University of Minnesota for the config.json file
+    .PARAMETER Path
+        The full path and file name of the JSON file to be updated
+    .PARAMETER Key
+        The key that you want to update in the Global Configuation JSON file
+    .PARAMETER Value
+        The value you want to set the key to
+    #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$True)]
@@ -55,5 +67,5 @@ function Set-Config {
     end {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
     }
-}#Get-Config
-Set-Config -Path C:\Users\thoen008\Desktop\GlobalConfig.json -Key "RecipeLocations" -Value "\\somewhere.new4" -Verbose
+}#Set-Config
+
