@@ -16,13 +16,13 @@ function Set-Config {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$True)]
+        [Parameter(Mandatory=$True, HelpMessage = "The full path and file name of the JSON file to be updated")]
         [ValidateNotNullOrEmpty()]
         [string]$Path,
-        [Parameter(Mandatory=$True)]
+        [Parameter(Mandatory=$True, HelpMessage = "The key that you want to update in the Global Configuation JSON file")]
         [ValidateNotNullOrEmpty()]
         [string]$Key,
-        [Parameter(Mandatory=$True)]
+        [Parameter(Mandatory=$True, HelpMessage = "The value you want to set the key to")]
         [ValidateNotNullOrEmpty()]
         [string]$Value
     )
@@ -33,39 +33,54 @@ function Set-Config {
         $json = Get-Content $Path -Raw
         $config = ConvertFrom-Json -InputObject $json
         $Keys = $config | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
-        foreach ($k in $Keys) {
-            Write-Verbose -Message "Querying $k"
-            if ($config.$k.gettype().Name -eq 'String') {
-                Write-Verbose "$k is a string"
-                if ($k -eq $Key) {
-                    Write-Verbose "Found match $k setting new value"
-                    $config.$k = $Value
-                    $config.LastModified = (Get-Date).ToString()
-                    $config | convertto-json | Set-Content $path
-                    Write-Verbose -Message "$key is updated with $value"
+        if ($Keys -contains $Key) {
+            Write-Verbose -Message "$Key is a valid Key."
+            foreach ($k in $Keys) {
+                Write-Verbose -Message "Querying $k"
+                if ($config.$k.gettype().Name -eq 'String') {
+                    Write-Verbose "$k is a string"
+                    if ($k -eq $Key) {
+                        Write-Verbose "Found match $k setting new value"
+                        $config.$k = $Value
+                        $config.LastModified = (Get-Date).ToString()
+                        try {
+                        $config | convertto-json -ErrorAction Stop | Set-Content $path -ErrorAction Stop
+                        Write-Verbose -Message "$key is updated with $value"
+                        }
+                        catch {
+                           Write-Warning -Message "Failed to update JSON file. $($_Exception.message)"
+                        }
+                    }
                 }
-            }
-            if ($config.$k.gettype().Name -eq "Object[]") {
-               Write-Verbose "$k is Array"
-               if ($k -eq $Key) {
-                   Write-Verbose "Found match for $k"
-                   if ($config.$k -contains $value) {
-                       Write-Verbose -Message "Already contains $value"
+                if ($config.$k.gettype().Name -eq "Object[]") {
+                   Write-Verbose "$k is Array"
+                   if ($k -eq $Key) {
+                       Write-Verbose "Found match for $k"
+                       if ($config.$k -contains $value) {
+                           Write-Verbose -Message "Already contains $value"
+                       }
+                       else {
+                        [System.collections.ArrayList]$new = $config.$k
+                        $new.add("$value") > $null
+                        $config.$k = $new
+                        $config.LastModified = (Get-Date).ToString()
+                        try {
+                            $config | convertto-json | Set-Content $path
+                        Write-Verbose -Message "$key is updated with $value"
+                        }
+                        catch {
+                           Write-Warning -Message "Failed to update JSON file. $($_Exception.message)"
+                        }
+                       }
                    }
-                   else {
-                    [System.collections.ArrayList]$new = $config.$k
-                    $new.add("$value") > $null
-                    $config.$k = $new
-                    $config.LastModified = (Get-Date).ToString()
-                    $config | convertto-json | Set-Content $path
-                    Write-Verbose -Message "$key is updated with $value"
-                   }
-               }
-            }
-        } #foreach $key
+                }
+            } #foreach $key
+        }
+        else {
+            Write-Warning -Message "$Key is not a valid Key."
+        }
     }
     end {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
     }
 }#Set-Config
-
