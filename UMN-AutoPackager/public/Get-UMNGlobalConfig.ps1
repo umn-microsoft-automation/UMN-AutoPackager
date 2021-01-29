@@ -20,9 +20,9 @@ function Get-Config {
         Write-Verbose -Message "Starting $($myinvocation.mycommand)"
     }
     process {
-        $json = Get-Content $Path -Raw
+        $json = Get-Content -Path $Path -Raw
         $config = ConvertFrom-Json -InputObject $json
-        Write-Output $config
+        Write-Output -InputObject $config
         }
     end {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
