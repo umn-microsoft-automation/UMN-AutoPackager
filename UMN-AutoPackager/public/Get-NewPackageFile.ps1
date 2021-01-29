@@ -1,16 +1,15 @@
 function Get-NewPackageFile {
 <#
     .SYNOPSIS
-    Cmdlet that downloads a file from a web server or file share and saves it to the specified location.
+    Cmdlet that saves a file from a file path, UNC, or URI and saves it to the specified location.
     .DESCRIPTION
-    Get-NewPackageFile is a function that when provided with a Source file path, UNC, or URI (as a string)
-    and a Destination path or UNC (as a string) will copy or download the Source file to the Destination.
-    Characters of a space (" ") or an 'escaped' space ("%20") are replaced with an underscore ("_") when
-    saved to the Destination. Returns object information of the saved file.
+    Get-NewPackageFile is a function that when provided with a Source file path, UNC, or URI (as a string) and a Destination path or
+    UNC (as a string) will copy or download the Source file to the Destination. Characters of a space (" ") or an escaped space ("%20")
+    are replaced with an underscore ("_") when saved to the Destination. Returns object information of the saved file.
     .PARAMETER Source
-    A string that must be a file path, UNC, or URI of the file to be saved to the Destination location.
+    A string that must be a file path, UNC, or URI of the file to be saved to the Destination location. Wildcards are not permitted.
     .PARAMETER Destination
-    A string that must be a file path or UNC where the Source file will be saved.
+    A string that must be a file path or UNC where the Source file will be saved. Wildcards are not permitted.
     .EXAMPLE
     Get-NewPackageFile -Source "C:\Test\File1.txt" -Destination "D:\Temp\File2.txt"
     .EXAMPLE
@@ -29,13 +28,13 @@ function Get-NewPackageFile {
     String
     .OUTPUTS
     System.IO.FileInfo
-    Get-NewPackageFile returns information on the file saved in the Destination.
+    Get-NewPackageFile returns information on the file saved in the location specified in the Destination parameter.
     .NOTES
-    If the Destination parameter is only a file path and does not include a filename, the filename obtained from
-    the Source parameter is used during the copy. Requires use of the "Get-RedirectedUri" function.
+    If the Destination parameter is only a file path and does not include a filename, the filename obtained from the Source parameter
+    is used during the copy. Requires use of the "Get-RedirectedUri" function.
 #>
     
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [Parameter(Mandatory = $true,
             HelpMessage = "Enter a valid Source file path, UNC, or URI.")]
@@ -106,23 +105,31 @@ function Get-NewPackageFile {
 
             #   If Destination path doesn't exist, create it
             if (-not(Test-Path -LiteralPath $DestinationPath -PathType Container)) {
-                Write-Verbose -Message "Creating Destination directory: $DestinationPath"
-                [void](New-Item -Path $DestinationPath -ItemType Directory -Force)
+                if ($PSCmdlet.ShouldProcess($DestinationPath, "Create directory")) {
+                    Write-Verbose -Message "Creating Destination directory: $DestinationPath"
+                    [void](New-Item -Path $DestinationPath -ItemType Directory -Force)
+                }
             }
 
             #   Copy or download file to destination
             Write-Verbose -Message "Saving $FullSource to $FullDestination"
             if ($SourceScheme -match "file") {
                 # Copy file from Source to Destination
-                Copy-Item -Path $FullSource -Destination $FullDestination -Force
+                if ($PSCmdlet.ShouldProcess(“$FullSource to $FullDestination”, "File copy")) {
+                    Copy-Item -Path $FullSource -Destination $FullDestination -Force
+                }
             }
             if ($SourceScheme -match "http") {
                 # Download file from Source to Destination
-                Invoke-WebRequest -Uri $FullSource -OutFile $FullDestination
+                if ($PSCmdlet.ShouldProcess(“$FullSource to $FullDestination”, "Download file")) {
+                    Invoke-WebRequest -Uri $FullSource -OutFile $FullDestination
+                }
             }
 
             # Return object information on saved file
-            Get-ChildItem -Path $FullDestination
+            if ($PSCmdlet.ShouldProcess($FullDestination, "Return file information")) {
+                Get-ChildItem -Path $FullDestination
+            }
 
         } catch {
             throw $_
