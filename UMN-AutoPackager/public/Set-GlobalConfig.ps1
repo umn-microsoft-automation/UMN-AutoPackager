@@ -30,8 +30,7 @@ function Set-Config {
         Write-Verbose -Message "Starting $($myinvocation.mycommand) Updating $key with $value"
     }
     process {
-        $json = Get-Content $Path -Raw
-        $config = ConvertFrom-Json -InputObject $json
+        $config = Get-GlobalConfig -Path $Path
         $Keys = $config | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
         if ($Keys -contains $Key) {
             Write-Verbose -Message "$Key is a valid Key."
