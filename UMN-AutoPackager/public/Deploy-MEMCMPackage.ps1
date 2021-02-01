@@ -1,0 +1,1 @@
+# Creates standard deployments (may require definition in the global configuration) in MEMCM

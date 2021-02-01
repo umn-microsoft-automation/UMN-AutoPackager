@@ -1,0 +1,1 @@
+# Create standard MEMCM collections based off global configuration
