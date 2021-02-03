@@ -1,6 +1,48 @@
 # Creates an MEMCM package based on the standard inputs from the package definition file
-# Build-MEMCMPackage -Path .\GlobalConfig.json -Name PackageConfig
-# Reads the globalconfig.json using get-UMNGlobalConfig for details on the various sites information. Retrieves the specified Pacakge Config Name using get-newpackagefile. Retrieves values of packagefile using Get-PackageDefition.
-# Foreach Site creates an application based on the values in the package config storing the content in the site's specified ApplicationContentPath.
-# Do we want this to accept multiple packageconfig names? Yes but build out a working function first
-# Do we want to expect from pipeline? Yes but first build out a working function first
+# Build-MEMCMPackage -GlobalConfig $arrayofglobalconfigdefinitions -PackageDefinition $arrayofpackagedefinitions
+# Reads the globalconfig.json using get-UMNGlobalConfig for details on the various sites information. Retrieves values of package definition array that was created using Get-PackageDefition.
+# Foreach Site creates an application based on the values in the package defintion array.
+function Build-MEMCMPackage {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true,
+            HelpMessage = "Input of the values of the GlobalConfig.json. Typically done using Get-UMNGlobalConfig.")]
+        [string]$GlobalConfig,
+        [Parameter(Mandatory = $true,
+            HelpMessage = "Input(s) of the values of the package defintion values. Typically done using Get-PackageDefinition.")]
+        [string[]]$PackageDefinition
+    )
+    begin {
+    }
+    process {
+        $ApplicationArguments = @{
+            Name = $ApplicationName
+            Description = $ApplicationDescription
+            Publisher = $ApplicationPublisher
+            SoftwareVersion = $ApplicationSoftwareVersion
+            ReleaseDate = (Get-Date)
+            LocalizedApplicationName = $ApplicationName
+        }
+        New-CMApplication @ApplicationArguments
+        # Create DeploymentType
+        $DeploymentTypeArguments = @{
+            ApplicationName = $ApplicationName
+            DeploymentTypeName = $ApplicationName
+            InstallationFileLocation = $ApplicationPath
+            ForceforUnknownPublisher = $true
+            MsiInstaller = $true
+            InstallationBehaviorType = "InstallForSystem"
+            InstallationProgram = $InstallationProgram
+            OnSlowNetworkMode = "DoNothing"
+        }
+        Add-CMDeploymentType @DeploymentTypeArguments
+        # Distribute content to DPG
+        $ContentDistributionArguments = @{
+            ApplicationName = $ApplicationName
+            DistributionPointGroupName = $DPGroupName
+        }
+        Start-CMContentDistribution @ContentDistributionArguments
+    }
+    end {
+    }
+}
