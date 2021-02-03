@@ -1,11 +1,11 @@
-function Get-Config {
+function Get-UMNGlobalConfig {
     <#
     .SYNOPSIS
         Gets all the global configurations and value for each from a JSON file used by the auto packager.
     .DESCRIPTION
         This command retrieves from a json file the values of various global configurations used as part of the AutoPackager. It requires a the full path and name of the JSON file.
     .EXAMPLE
-        Get-Config -Path .\config.json
+        Get-UMNGlobalConfig -Path .\config.json
         Gets the values of the config.json file
     .PARAMETER Path
         The full path and file name of the JSON file to get the config from
@@ -27,4 +27,4 @@ function Get-Config {
     end {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
     }
-}#Get-Config
+}#Get-UMNGlobalConfig
