@@ -40,60 +40,69 @@ function Build-MEMCMPackage {
         [psobject]$GlobalConfig,
         [Parameter(Mandatory = $true,
             HelpMessage = "Input the values of the various packagedefinition.json files.")]
-        [psobject[]]$PackageDefinition
+        [psobject[]]$PackageDefinition,
+        [ValidateNotNull()]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
     begin {
         Write-Verbose -Message "Starting $($myinvocation.mycommand)"
         Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
     }
     process {
-        foreach ($object in ($GlobalConfig.ConfigMgr.Site)) {
+        foreach ($object in ($GlobalConfig.ConfigMgr)) {
             Write-Verbose -Message "Processing $object Site..."
+            # Credit this for using credentials https://duffney.io/addcredentialstopowershellfunctions/
             try {
-                if(-not (Test-Path -Path $SiteCode)) {
-                   $SiteDrive = New-PSDrive -Name $SiteCode -PSProvider CMSite -Root $SingleSite -Credential $creds
+                if(-not (Test-Path -Path $object.sitecode)) {
+                   $SiteDrive = New-PSDrive -Name $object.sitecode -PSProvider CMSite -Root $object.Site -Credential $Credential
+                   Write-Verbose -Message "Working on $SiteDrive"
                 }
             } catch {
                 Write-Error $Error[0]
             }
+            $Loco = Get-Location
+            Write-Verbose -Message "Pushing location $Loco"
             Push-Location
+            # Need to fix the Set-location stuff doesn't seem to be working
             Set-Location $SiteDrive
             foreach ($object in $PackageDefinition) {
                 Write-Verbose -Message "Processing package defintion $object"
-                # need to discuss naming conventions at some point but leave them simple for now
-                $ApplicationArguments = @{
-                    Name = $ApplicationName
-                    Description = $ApplicationDescription
-                    Publisher = $ApplicationPublisher
-                    SoftwareVersion = $ApplicationSoftwareVersion
-                    ReleaseDate = (Get-Date)
-                    LocalizedApplicationName = $ApplicationName
+                if ($object.PackagingTargets.Type -eq "MEMCM-Application") {
+                    # Build out the varibles needed for each one below using the packageconfig or globalconfig. Add any needed values to the config.
+                    $ApplicationArguments = @{
+                        Name = $ApplicationName
+                        Description = $ApplicationDescription
+                        Publisher = $ApplicationPublisher
+                        SoftwareVersion = $ApplicationSoftwareVersion
+                        ReleaseDate = $ReleaseDate
+                        LocalizedApplicationName = $ApplicationName
+                    }
+                    # New-CMApplication @ApplicationArguments -whatif
+                    $DeploymentTypeArguments = @{
+                        ApplicationName = $ApplicationName
+                        DeploymentTypeName = $ApplicationName
+                        InstallationFileLocation = $ApplicationPath
+                        ForceforUnknownPublisher = $true
+                        MsiInstaller = $true
+                        InstallationBehaviorType = "InstallForSystem"
+                        InstallationProgram = $InstallationProgram
+                        OnSlowNetworkMode = "DoNothing"
+                    }
+                    # Add-CMDeploymentType @DeploymentTypeArguments -whatif
+                    $ContentDistributionArguments = @{
+                        ApplicationName = $ApplicationName
+                        DistributionPointGroupName = $DPGroupName
+                    }
+                    # Start-CMContentDistribution @ContentDistributionArguments -whatif
                 }
-                # New-CMApplication @ApplicationArguments -whatif
-                # Create DeploymentType
-                $DeploymentTypeArguments = @{
-                    ApplicationName = $ApplicationName
-                    DeploymentTypeName = $ApplicationName
-                    InstallationFileLocation = $ApplicationPath
-                    ForceforUnknownPublisher = $true
-                    MsiInstaller = $true
-                    InstallationBehaviorType = "InstallForSystem"
-                    InstallationProgram = $InstallationProgram
-                    OnSlowNetworkMode = "DoNothing"
-                }
-                # Add-CMDeploymentType @DeploymentTypeArguments -whatif
-                # Distribute content to DPG
-                $ContentDistributionArguments = @{
-                    ApplicationName = $ApplicationName
-                    DistributionPointGroupName = $DPGroupName
-                }
-                # Start-CMContentDistribution @ContentDistributionArguments -whatif
-                Pop-Location
             }
+            Pop-Location
         }
     }
     end {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
     }
 }
-Build-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\AnotherPackageConfig.json),(Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\PackageConfig.json) -verbose
+Build-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\PackageConfig.json) -Credential oitthoen008 -verbose

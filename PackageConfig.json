@@ -1,11 +1,63 @@
 {
-    "Publisher"     : "Mozilla",
-    "ProductName"   : "Firefox",
-    "OldVersion"    : "82.0.3",
-    "VersionSource" : "Filename",
-    "Source"        : "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US",
-    "DownloadPath"  : "C:\\Temp\\UMNAutoPackager\\Downloads",
-    "BuildPath"     : "C:\\Temp\\UMNAutoPackager\\Applications",
-    "BuildType"     : "Baseline",
-    "ConfigNotes"   : "General comments about this config file"
+    "publisher"     : "Mozilla",
+    "productName"   : "Firefox",
+    "description" : "app description",
+    "currentVersion"    : "82.0.3",
+    "versionSource" : "Filename",
+    "sourcePath"        : "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US",
+    "configNotes"   : "General comments about this config file",
+    "packagingTargets" : [
+        {
+            "type" : "MEMCM-Application",
+            "name" : "{baseAppName}-{publisher}-{productName}-{version}",
+            "adminComments" : null,
+            "optionalReference" : null,
+            "adminCategories" : [
+                "cat1",
+                "cat2"
+            ],
+            "datePublished" : null,
+            "allowTSUsage" : true,
+            "localizedApplicationName" : "{publisher} {productName} {version}",
+            "userCategories" : [ "cat1", "cat2" ],
+            "userDocumentationLink" : "documentation",
+            "userDocumentationText" : "Firefox Docs",
+            "privacyLink" : "privacy link",
+            "localizedDescription" : "",
+            "keywords" : [ "keyword1", "keyword2" ],
+            "featuredApp" : false,
+            "deploymentTypes" : [
+                {
+                    "name" : "x64",
+                    "installerType" : "script",
+                    "adminComments" : "comment",
+                    "language" : "English",
+                    "cacheContent" : false,
+                    "branchCache" : false,
+                    "contentFallback" : false,
+                    "onSlowNetwork" : "download",
+                    "installCMD" : null,
+                    "uninstallCMD" : null,
+                    "runAs32Bit" : false,
+                    "installBehavior" : "system",
+                    "logonRequired" : false,
+                    "userInteraction" : "hidden",
+                    "estimatedRuntime" : "5",
+                    "maxRuntime" : "15",
+                    "rebootBehavior" : "ExitCode",
+                    "detectionMethods" : [
+                        {
+                            "type" : "registry"
+                        },
+                        {
+                            "type" : "file"
+                        }
+                    ]
+                },
+                {
+                    "name" : "x86"
+                }
+            ]
+        }
+    ]
 }
