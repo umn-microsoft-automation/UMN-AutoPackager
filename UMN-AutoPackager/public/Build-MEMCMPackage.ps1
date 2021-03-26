@@ -54,19 +54,16 @@ function Build-MEMCMPackage {
         foreach ($object in ($GlobalConfig.ConfigMgr)) {
             Write-Verbose -Message "Processing $object Site..."
             # Credit this for using credentials https://duffney.io/addcredentialstopowershellfunctions/
+            $SiteCode = $object.SiteCode
             try {
-                if(-not (Test-Path -Path $object.sitecode)) {
-                   $SiteDrive = New-PSDrive -Name $object.sitecode -PSProvider CMSite -Root $object.Site -Credential $Credential
-                   Write-Verbose -Message "Working on $SiteDrive"
+                if(-not (Test-Path -Path $SiteCode)) {
+                   $ConfigMgrDrive = New-PSDrive -Name $SiteCode -PSProvider CMSite -Root $object.Site -Credential $Credential
                 }
             } catch {
                 Write-Error $Error[0]
             }
-            $Loco = Get-Location
-            Write-Verbose -Message "Pushing location $Loco"
             Push-Location
-            # Need to fix the Set-location stuff doesn't seem to be working
-            Set-Location $SiteDrive
+            Set-Location -Path "$SiteCode`:\"
             foreach ($object in $PackageDefinition) {
                 Write-Verbose -Message "Processing package defintion $object"
                 if ($object.PackagingTargets.Type -eq "MEMCM-Application") {
@@ -99,6 +96,7 @@ function Build-MEMCMPackage {
                 }
             }
             Pop-Location
+            $ConfigMgrDrive | Remove-PSDrive
         }
     }
     end {
