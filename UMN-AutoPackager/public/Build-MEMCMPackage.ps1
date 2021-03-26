@@ -51,23 +51,43 @@ function Build-MEMCMPackage {
         Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
     }
     process {
-        foreach ($object in ($GlobalConfig.ConfigMgr)) {
-            Write-Verbose -Message "Processing $object Site..."
+        foreach ($ConfigMgrObject in ($GlobalConfig.ConfigMgr)) {
+            Write-Verbose -Message "Processing $ConfigMgrObject Site..."
             # Credit this for using credentials https://duffney.io/addcredentialstopowershellfunctions/
-            $SiteCode = $object.SiteCode
+            $SiteCode = $ConfigMgrObject.SiteCode
             try {
                 if(-not (Test-Path -Path $SiteCode)) {
-                   $ConfigMgrDrive = New-PSDrive -Name $SiteCode -PSProvider CMSite -Root $object.Site -Credential $Credential
+                   $ConfigMgrDrive = New-PSDrive -Name $SiteCode -PSProvider CMSite -Root $ConfigMgrObject.Site -Credential $Credential
                 }
             } catch {
                 Write-Error $Error[0]
             }
             Push-Location
             Set-Location -Path "$SiteCode`:\"
-            foreach ($object in $PackageDefinition) {
-                Write-Verbose -Message "Processing package defintion $object"
-                if ($object.PackagingTargets.Type -eq "MEMCM-Application") {
+            foreach ($PkgObject in $PackageDefinition) {
+                Write-Verbose -Message "Processing package definition $PkgObject"
+                if ($PkgObject.PackagingTargets.Type -eq "MEMCM-Application") {
                     # Build out the varibles needed for each one below using the packageconfig or globalconfig. Add any needed values to the config.
+                    $Keys = $PkgObject | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
+                    $baseAppName = $ConfigMgrObject.baseAppName
+                    $AppName = $PkgObject.packagingTargets.Name
+                    if ($AppName -match '}-') {
+                        $BuildName = $AppName -split '-' -replace '[{}]',''
+                        foreach ($item in $BuildName) {
+                            Write-Verbose -Message "$item is being processed"
+                            if ($Keys -contains $item) {
+                                Write-Verbose -Message "Found match for $item"
+                                $n = $object.$item
+                                $NewName += "$n "
+                            }
+                        }
+                        $NewName = $NewName -replace(' ',"-")
+                        $NewName = $NewName -replace ".$"
+                    }
+                    if ($null -ne $baseAppName) {
+                        $NewName = $NewName.Insert(0,"$baseAppName-")
+                    }
+                    Write-Verbose -Message "Application name is $NewName"
                     $ApplicationArguments = @{
                         Name = $ApplicationName
                         Description = $ApplicationDescription

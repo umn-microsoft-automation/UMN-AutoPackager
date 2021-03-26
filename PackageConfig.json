@@ -9,7 +9,7 @@
     "packagingTargets" : [
         {
             "type" : "MEMCM-Application",
-            "name" : "{baseAppName}-{publisher}-{productName}-{version}",
+            "name" : "{baseAppName}-{publisher}-{productName}-{currentVersion}",
             "adminComments" : null,
             "optionalReference" : null,
             "adminCategories" : [
@@ -18,7 +18,7 @@
             ],
             "datePublished" : null,
             "allowTSUsage" : true,
-            "localizedApplicationName" : "{publisher} {productName} {version}",
+            "localizedApplicationName" : "{publisher} {productName} {currentVersion}",
             "userCategories" : [ "cat1", "cat2" ],
             "userDocumentationLink" : "documentation",
             "userDocumentationText" : "Firefox Docs",
