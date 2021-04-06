@@ -96,13 +96,60 @@ function Build-MEMCMPackage {
                         $NewAppName = $NewAppName.Insert(0,"$baseAppName-")
                     }
                     Write-Verbose -Message "Application name is $NewAppName"
+                    $LocalAppName = $PkgObject.packagingTargets.localizedApplicationName
+                    if ($LocalAppName -match '} ') {
+                        Write-Verbose -Message "$LocalAppName is a pattern."
+                        $LocalBuildName = $LocalAppName -split ' ' -replace '[{}]',''
+                        foreach ($localitem in $LocalBuildName) {
+                            Write-Verbose -Message "$localitem is being processed"
+                            if ($Keys -contains $localitem) {
+                                Write-Verbose -Message "Found match for $localitem"
+                                $n = $PkgObject.$localitem
+                                $NewLocalAppName += "$n "
+                                Write-Verbose -Message "Setting name to $NewLocalAppName"
+                            }
+                        }
+                    }
+                    else {
+                        Write-verbose -Message "No pattern using value of packagingTargets.localizedApplicationName"
+                        $NewLocalAppName = $LocalAppName
+                    }
+                    <# $ApplicationArguments = @{}
+                    foreach ($key in $Keys) {
+                        if (-not [string]::IsNullOrEmpty($key) -and $key -ne 'packagingTargets'){
+                            Write-Verbose -Message "$key will be added."
+                            $ApplicationArguments.add($key,$PkgObject.$key)
+                        }
+                    }
+                    $PkgKeys = $PkgObject.packagingTargets | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
+                    foreach ($Pkgkey in $PkgKeys) {
+                        if (-not [string]::IsNullOrEmpty($Pkgkey) -and $Pkgkey -ne 'deploymentTypes'){
+                            Write-Verbose -Message "$Pkgkey will be added."
+                            $ApplicationArguments.add($PkgKey,$PkgObject.packagingTargets.$PkgKey)
+                        }
+                    }
+                    foreach ($value in $ApplicationArguments.Keys) {
+                        Write-Verbose -Message "$value $($ApplicationArguments[$value])"
+                    } #>
+                    # Maybe I need to build out what keys are not blank then dynamically build the command based on values not null or blank
+                    # Running into to much crap in the packageconfig that isn't needed in the hash table.
+                    # Maybe I should build the hash table regardless of null then foreach through the table and remove any null values to get around the argument is null issue
+
                     $ApplicationArguments = @{
                         Name = $NewAppName
                         Description = $PkgObject.Description
                         Publisher = $PkgObject.Publisher
                         SoftwareVersion = $PkgObject.currentVersion
-                        ReleaseDate = $ReleaseDate
-                        LocalizedApplicationName = $ApplicationName
+                        ReleaseDate = $PkgObject.packagingTargets.datePublished
+                    # Add this to the PackageConfig
+                        AddOwner = $PkgObject.owner
+                        AutoInstall = $PkgObject.packagingTargets.allowTSUsage
+                        IconLocationFile = $PkgObject.packagingTargets.IconLocationFile
+                    # Need to fix keywords
+                        Keywords = $PkgObject.packagingTargets.Keywords
+                        Linktext = $PkgObject.packagingTargets.userDocumentationText
+                        LocalizedDescription = $PkgObject.packagingTargets.localizedDescription
+                        LocalizedName = $NewLocalAppName
                     }
                     # New-CMApplication @ApplicationArguments -whatif
                     $DeploymentTypeArguments = @{
