@@ -69,30 +69,38 @@ function Build-MEMCMPackage {
                 if ($PkgObject.PackagingTargets.Type -eq "MEMCM-Application") {
                     # Build out the varibles needed for each one below using the packageconfig or globalconfig. Add any needed values to the config.
                     $Keys = $PkgObject | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
-                    $baseAppName = $ConfigMgrObject.baseAppName
+                    # Building out the Application Name based on the pattern if used otherwise using the specific name in the field
                     $AppName = $PkgObject.packagingTargets.Name
                     if ($AppName -match '}-') {
+                        Write-Verbose -Message "$AppName is a pattern."
                         $BuildName = $AppName -split '-' -replace '[{}]',''
                         foreach ($item in $BuildName) {
                             Write-Verbose -Message "$item is being processed"
                             if ($Keys -contains $item) {
                                 Write-Verbose -Message "Found match for $item"
-                                $n = $object.$item
-                                $NewName += "$n "
+                                $n = $PkgObject.$item
+                                $NewAppName += "$n "
+                                Write-Verbose -Message "Setting name to $NewAppName"
                             }
                         }
-                        $NewName = $NewName -replace(' ',"-")
-                        $NewName = $NewName -replace ".$"
+                        $NewAppName = $NewAppName -replace(' ',"-")
+                        $NewAppName = $NewAppName -replace ".$"
                     }
-                    if ($null -ne $baseAppName) {
-                        $NewName = $NewName.Insert(0,"$baseAppName-")
+                    else {
+                        Write-verbose -Message "No pattern using value of packagingTargets.Name"
+                        $NewAppName = $AppName
                     }
-                    Write-Verbose -Message "Application name is $NewName"
+                    $baseAppName = $ConfigMgrObject.baseAppName
+                    if (-not [string]::IsNullOrEmpty($baseAppName)) {
+                        Write-Verbose -Message "$baseAppName will be used."
+                        $NewAppName = $NewAppName.Insert(0,"$baseAppName-")
+                    }
+                    Write-Verbose -Message "Application name is $NewAppName"
                     $ApplicationArguments = @{
-                        Name = $ApplicationName
-                        Description = $ApplicationDescription
-                        Publisher = $ApplicationPublisher
-                        SoftwareVersion = $ApplicationSoftwareVersion
+                        Name = $NewAppName
+                        Description = $PkgObject.Description
+                        Publisher = $PkgObject.Publisher
+                        SoftwareVersion = $PkgObject.currentVersion
                         ReleaseDate = $ReleaseDate
                         LocalizedApplicationName = $ApplicationName
                     }
