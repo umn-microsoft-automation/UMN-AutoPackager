@@ -65,7 +65,6 @@ function Build-MEMCMPackage {
             Push-Location
             Set-Location -Path "$SiteCode`:\"
             foreach ($PkgObject in $PackageDefinition) {
-                Write-Verbose -Message "Processing package definition $PkgObject"
                 if ($PkgObject.PackagingTargets.Type -eq "MEMCM-Application") {
                     # Build out the varibles needed for each one below using the packageconfig or globalconfig. Add any needed values to the config.
                     $Keys = $PkgObject | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
@@ -75,12 +74,12 @@ function Build-MEMCMPackage {
                         Write-Verbose -Message "$AppName is a pattern."
                         $BuildName = $AppName -split '-' -replace '[{}]',''
                         foreach ($item in $BuildName) {
-                            Write-Verbose -Message "$item is being processed"
+                            # Write-Verbose -Message "$item is being processed"
                             if ($Keys -contains $item) {
-                                Write-Verbose -Message "Found match for $item"
+                                # Write-Verbose -Message "Found match for $item"
                                 $n = $PkgObject.$item
                                 $NewAppName += "$n "
-                                Write-Verbose -Message "Setting name to $NewAppName"
+                                # Write-Verbose -Message "Setting name to $NewAppName"
                             }
                         }
                         $NewAppName = $NewAppName -replace(' ',"-")
@@ -92,7 +91,7 @@ function Build-MEMCMPackage {
                     }
                     $baseAppName = $ConfigMgrObject.baseAppName
                     if (-not [string]::IsNullOrEmpty($baseAppName)) {
-                        Write-Verbose -Message "$baseAppName will be used."
+                        Write-Verbose -Message "Baseapp name found using: $baseAppName"
                         $NewAppName = $NewAppName.Insert(0,"$baseAppName-")
                     }
                     Write-Verbose -Message "Application name is $NewAppName"
@@ -101,9 +100,9 @@ function Build-MEMCMPackage {
                         Write-Verbose -Message "$LocalAppName is a pattern."
                         $LocalBuildName = $LocalAppName -split ' ' -replace '[{}]',''
                         foreach ($localitem in $LocalBuildName) {
-                            Write-Verbose -Message "$localitem is being processed"
+                            # Write-Verbose -Message "$localitem is being processed"
                             if ($Keys -contains $localitem) {
-                                Write-Verbose -Message "Found match for $localitem"
+                                # Write-Verbose -Message "Found match for $localitem"
                                 $n = $PkgObject.$localitem
                                 $NewLocalAppName += "$n "
                                 Write-Verbose -Message "Setting name to $NewLocalAppName"
@@ -114,6 +113,7 @@ function Build-MEMCMPackage {
                         Write-verbose -Message "No pattern using value of packagingTargets.localizedApplicationName"
                         $NewLocalAppName = $LocalAppName
                     }
+                    Write-Verbose -Message "Local Application name is $NewLocalAppName"
                     # Maybe I should build the hash table regardless of null then foreach through the table and remove any null values to get around the argument is null issue
                     $ApplicationArguments = @{
                         Name = $NewAppName
@@ -135,24 +135,20 @@ function Build-MEMCMPackage {
                         SupportContact = $PkgObject.supportContact
                         UserDocumentation = $PkgObject.packagingTargets.userDocumentationLink
                     }
-                    Write-Output $ApplicationArguments
-                    # Rebuilding the hashtable and removing null or empty values
-                    $NewApplicationArguements = @{}
-                    foreach ($appA in $ApplicationArguments.GetEnumerator()) {
+                    # Removing null or empty values from the hashtable
+                    $list = New-Object System.Collections.ArrayList
+                    foreach ($appA in $ApplicationArguments.Keys) {
                         $value = $appA.value
-                        $key = $appA.key
-                        Write-Verbose -Message "Processing $key with value $value"
-                        if ([string]::IsNullOrEmpty($value) -and $value -is [string]) {
-                            Write-Verbose -Message "$key is empty/null and a string removing from hashtable."
-                        }
-                        else {
-                            Write-Verbose -Message "Adding $key with $value to the new hashtable."
-                            $NewApplicationArguements.Add($key, $value)
+                        # Write-Verbose -Message "Processing $appA with value $value"
+                        if (-not $ApplicationArguments.$appA){
+                            Write-Verbose -Message "$appA value is empty/null marking for removal."
+                            $null = $list.Add($appA)
                         }
                     }
-                    Write-Output $NewApplicationArguements
-                    # Doesn't seem to like my hashtable. Name keeps coming up as null. Will try a new approach.
-                    New-CMApplication -whatif @NewApplicationArguments
+                    foreach ($item in $list) {
+                        $ApplicationArguments.Remove($item)
+                    }
+                    New-CMApplication -whatif @ApplicationArguments
                     $DeploymentTypeArguments = @{
                         ApplicationName = $ApplicationName
                         DeploymentTypeName = $ApplicationName
