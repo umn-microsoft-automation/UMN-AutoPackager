@@ -114,27 +114,7 @@ function Build-MEMCMPackage {
                         Write-verbose -Message "No pattern using value of packagingTargets.localizedApplicationName"
                         $NewLocalAppName = $LocalAppName
                     }
-                    <# $ApplicationArguments = @{}
-                    foreach ($key in $Keys) {
-                        if (-not [string]::IsNullOrEmpty($key) -and $key -ne 'packagingTargets'){
-                            Write-Verbose -Message "$key will be added."
-                            $ApplicationArguments.add($key,$PkgObject.$key)
-                        }
-                    }
-                    $PkgKeys = $PkgObject.packagingTargets | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
-                    foreach ($Pkgkey in $PkgKeys) {
-                        if (-not [string]::IsNullOrEmpty($Pkgkey) -and $Pkgkey -ne 'deploymentTypes'){
-                            Write-Verbose -Message "$Pkgkey will be added."
-                            $ApplicationArguments.add($PkgKey,$PkgObject.packagingTargets.$PkgKey)
-                        }
-                    }
-                    foreach ($value in $ApplicationArguments.Keys) {
-                        Write-Verbose -Message "$value $($ApplicationArguments[$value])"
-                    } #>
-                    # Maybe I need to build out what keys are not blank then dynamically build the command based on values not null or blank
-                    # Running into to much crap in the packageconfig that isn't needed in the hash table.
                     # Maybe I should build the hash table regardless of null then foreach through the table and remove any null values to get around the argument is null issue
-
                     $ApplicationArguments = @{
                         Name = $NewAppName
                         Description = $PkgObject.Description
@@ -150,8 +130,29 @@ function Build-MEMCMPackage {
                         Linktext = $PkgObject.packagingTargets.userDocumentationText
                         LocalizedDescription = $PkgObject.packagingTargets.localizedDescription
                         LocalizedName = $NewLocalAppName
+                        PrivacyURL = $PkgObject.packagingTargets.privacyLink
+                    # Add this to the pkgconfig
+                        SupportContact = $PkgObject.supportContact
+                        UserDocumentation = $PkgObject.packagingTargets.userDocumentationLink
                     }
-                    # New-CMApplication @ApplicationArguments -whatif
+                    Write-Output $ApplicationArguments
+                    # Rebuilding the hashtable and removing null or empty values
+                    $NewApplicationArguements = @{}
+                    foreach ($appA in $ApplicationArguments.GetEnumerator()) {
+                        $value = $appA.value
+                        $key = $appA.key
+                        Write-Verbose -Message "Processing $key with value $value"
+                        if ([string]::IsNullOrEmpty($value) -and $value -is [string]) {
+                            Write-Verbose -Message "$key is empty/null and a string removing from hashtable."
+                        }
+                        else {
+                            Write-Verbose -Message "Adding $key with $value to the new hashtable."
+                            $NewApplicationArguements.Add($key, $value)
+                        }
+                    }
+                    Write-Output $NewApplicationArguements
+                    # Doesn't seem to like my hashtable. Name keeps coming up as null. Will try a new approach.
+                    New-CMApplication -whatif @NewApplicationArguments
                     $DeploymentTypeArguments = @{
                         ApplicationName = $ApplicationName
                         DeploymentTypeName = $ApplicationName
