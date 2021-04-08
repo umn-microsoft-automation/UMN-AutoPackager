@@ -105,7 +105,7 @@ function Build-MEMCMPackage {
                                 # Write-Verbose -Message "Found match for $localitem"
                                 $n = $PkgObject.$localitem
                                 $NewLocalAppName += "$n "
-                                Write-Verbose -Message "Setting name to $NewLocalAppName"
+                                # Write-Verbose -Message "Setting name to $NewLocalAppName"
                             }
                         }
                     }
@@ -114,7 +114,6 @@ function Build-MEMCMPackage {
                         $NewLocalAppName = $LocalAppName
                     }
                     Write-Verbose -Message "Local Application name is $NewLocalAppName"
-                    # Maybe I should build the hash table regardless of null then foreach through the table and remove any null values to get around the argument is null issue
                     $ApplicationArguments = @{
                         Name = $NewAppName
                         Description = $PkgObject.Description
@@ -138,8 +137,7 @@ function Build-MEMCMPackage {
                     # Removing null or empty values from the hashtable
                     $list = New-Object System.Collections.ArrayList
                     foreach ($appA in $ApplicationArguments.Keys) {
-                        $value = $appA.value
-                        # Write-Verbose -Message "Processing $appA with value $value"
+                        # Write-Verbose -Message "Processing $appA"
                         if (-not $ApplicationArguments.$appA){
                             Write-Verbose -Message "$appA value is empty/null marking for removal."
                             $null = $list.Add($appA)
@@ -148,18 +146,42 @@ function Build-MEMCMPackage {
                     foreach ($item in $list) {
                         $ApplicationArguments.Remove($item)
                     }
+                    # Building ConfigMgr application
+        # Remove Whatifs once ready to merge with master
                     New-CMApplication -whatif @ApplicationArguments
-                    $DeploymentTypeArguments = @{
-                        ApplicationName = $ApplicationName
-                        DeploymentTypeName = $ApplicationName
-                        InstallationFileLocation = $ApplicationPath
-                        ForceforUnknownPublisher = $true
-                        MsiInstaller = $true
-                        InstallationBehaviorType = "InstallForSystem"
-                        InstallationProgram = $InstallationProgram
-                        OnSlowNetworkMode = "DoNothing"
+                    # Need to loop to do multiple deployment types
+        # The value of installBehavior must be one of 3 values (Not sure if we can enforce this maybe a try catch). InstallForSystem, InstallForSystemIfResourceIsDeviceOtherwiseInstallForUser,InstallForUser
+        # The value of installationprogramvisibility must be one of 4 values. Normal, Minimized, Maximized, Hidden
+        # Language specifices an array of languages. Not sure we want to deal with that right now.
+        # LogonRequirementType must be one of 3 values. OnlyWhenNoUserLoggedOn, OnlyWhenUserLoggedOn, WhereOrNotUserLoggedOn
+        # OnSlowNetworkMode must be one of 3 values. DoNothing, Download,DownloadContentForStreaming
+        # Need to figure out the installer type.
+                    foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
+                        $DepName = $deptype.Name
+                        $DeploymentTypeArguments = @{
+                            ApplicationName = $NewAppName
+                            DeploymentTypeName = $NewAppName + $DepName
+                            InstallationFileLocation = $ApplicationPath
+                            ForceforUnknownPublisher = $true
+                            MsiInstaller = $true
+                            InstallationBehaviorType = $deptype.installBehavior
+                            InstallationProgram = $deptype.installCMD
+                            InstallationProgramVisibility = $deptype.userInteraction
+                            AdministratorComment = $depType.adminComments
+                            ContentLocation = $depType.ContentLocation
+                            EnableBranchCache = $deptype.branchCache
+                            EnableContentLocationFallback = $deptype.contentFallback
+                            EsitmatedInstallationTimeMins = $deptype.esitmatedRuntime
+                            Force32BitInstaller = $deptype.runAs32Bit
+                            Language = $depType.Language
+                            LogonRequirementType = $depType.logonRequired
+                            MaximumAllowedRunTimeMins = $depType.maxRuntime
+                            OnSlowNetworkMode = $depType.onSlowNetwork
+                            PersistContentInClientCache = $deptype.cacheContent
+                            UninstallProgram = $depType.uninstallCMD
+                        }
+                        # Add-CMDeploymentType @DeploymentTypeArguments -whatif
                     }
-                    # Add-CMDeploymentType @DeploymentTypeArguments -whatif
                     $ContentDistributionArguments = @{
                         ApplicationName = $ApplicationName
                         DistributionPointGroupName = $DPGroupName
