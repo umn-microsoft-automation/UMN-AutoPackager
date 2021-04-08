@@ -149,7 +149,6 @@ function Build-MEMCMPackage {
                     # Building ConfigMgr application
         # Remove Whatifs once ready to merge with master
                     New-CMApplication -whatif @ApplicationArguments
-                    # Need to loop to do multiple deployment types
         # InstallationBehaviorType must be one of 3 values (Not sure if we can enforce this maybe a try catch). InstallForSystem, InstallForSystemIfResourceIsDeviceOtherwiseInstallForUser,InstallForUser
         # UserInteractionMode must be one of 4 values. Normal, Minimized, Maximized, Hidden
         # AddLanguage specifices an array of languages. Not sure we want to deal with that right now.
@@ -186,8 +185,25 @@ function Build-MEMCMPackage {
                             UserInteractionmode = $deptype.userInteraction
                         }
                         Write-Output $DeploymentTypeArguments
+                        # Removing null or empty values from the hashtable
+                        $DepTypelist = New-Object System.Collections.ArrayList
+                        foreach ($DTArgue in $DeploymentTypeArguments.Keys) {
+                            Write-Verbose -Message "Processing $DTArgue"
+                            if (-not $DeploymentTypeArguments.$DTArgue){
+                                Write-Verbose -Message "$DTArgue value is empty/null marking for removal."
+                                $null = $DepTypelist.Add($DTArgue)
+                            }
+                        }
+                        foreach ($item in $DepTypelist) {
+                            $DeploymentTypeArguments.Remove($item)
+                        }
+                        Write-Output $DeploymentTypeArguments
                         # This command is deprecated. Need to use one of the new ones. Add-CMDeploymentType @DeploymentTypeArguments -whatif
                         # Add-CMMsiDeploymentType, Add-CMScriptDeploymentType There are others but these seem the most common. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmdeploymenttype?view=sccm-ps
+                        foreach ($detectionMethod in $PkgObject.packagingTargets.deploymentTypes.detectionMethods){
+                         # Check for ProductCode I suspect this needs to be dealt with seperate. Maybe not since there is a function called windowsinstaller
+                         # Build an array with all the detection methods and use that array in the call for -AddDetectionClause
+                        }
                     }
         # Need to build out the Detection clause using the New-CMDetectionClause functions. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmscriptdeploymenttype?view=sccm-ps
         # The detection clause will need to be dumped into a variable for use in the Add-CM deployment type function call.
