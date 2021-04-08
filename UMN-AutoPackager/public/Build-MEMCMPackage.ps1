@@ -151,10 +151,11 @@ function Build-MEMCMPackage {
                     New-CMApplication -whatif @ApplicationArguments
         # InstallationBehaviorType must be one of 3 values (Not sure if we can enforce this maybe a try catch). InstallForSystem, InstallForSystemIfResourceIsDeviceOtherwiseInstallForUser,InstallForUser
         # UserInteractionMode must be one of 4 values. Normal, Minimized, Maximized, Hidden
-        # AddLanguage specifices an array of languages. Not sure we want to deal with that right now.
+        # AddLanguage specifices an array of languages. Not sure we want to deal with that right now. Accepts LCID language codes. https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-lcid/a9eac961-e77d-41a6-90a5-ce1a8b0cdb9c
         # LogonRequirementType must be one of 3 values. OnlyWhenNoUserLoggedOn, OnlyWhenUserLoggedOn, WhetherOrNotUserLoggedOn
         # SlowNetworkDeploymentMode must be one of 2 values. DoNothing, Download
         # RebootBehavior must be one of 4 BaseOnExitCode, NoAction, ProgramReboot, ForceReboot
+        # ScriptLanguage is required for a Script Deployment Type. Accepts Powershell, VBScript,Javascript
         # ForceScriptDetection32Bit Needed?
         # RepairCommand Needed?
         # ScriptFile detect for deployment. Future improvement.
@@ -180,6 +181,7 @@ function Build-MEMCMPackage {
                             MaximumRuntimeMins = $depType.maxRuntime
                             # ProductCode = Figure this out. It states it will over write any other detection.
                             RebootBehavior = $depType.rebootBehavior
+                            ScriptLanguage = $depType.scriptLanguage
                             SlowNetworkDeploymentMode = $depType.onSlowNetwork
                             UninstallProgram = $depType.uninstallCMD
                             UserInteractionmode = $deptype.userInteraction
@@ -188,7 +190,7 @@ function Build-MEMCMPackage {
                         # Removing null or empty values from the hashtable
                         $DepTypelist = New-Object System.Collections.ArrayList
                         foreach ($DTArgue in $DeploymentTypeArguments.Keys) {
-                            Write-Verbose -Message "Processing $DTArgue"
+                            # Write-Verbose -Message "Processing $DTArgue"
                             if (-not $DeploymentTypeArguments.$DTArgue){
                                 Write-Verbose -Message "$DTArgue value is empty/null marking for removal."
                                 $null = $DepTypelist.Add($DTArgue)
@@ -203,6 +205,12 @@ function Build-MEMCMPackage {
                         foreach ($detectionMethod in $PkgObject.packagingTargets.deploymentTypes.detectionMethods){
                          # Check for ProductCode I suspect this needs to be dealt with seperate. Maybe not since there is a function called windowsinstaller
                          # Build an array with all the detection methods and use that array in the call for -AddDetectionClause
+                        }
+                        if ($depType.installerType -eq "Script") {
+                            Add-CMScriptDeploymentType -WhatIf @DeploymentTypeArguments
+                        }
+                        elseif ($depType.installerType -eq "Msi") {
+                            Add-CMMsiDeploymentType -Whatif @DeploymentTypeArguments
                         }
                     }
         # Need to build out the Detection clause using the New-CMDetectionClause functions. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmscriptdeploymenttype?view=sccm-ps
