@@ -150,38 +150,47 @@ function Build-MEMCMPackage {
         # Remove Whatifs once ready to merge with master
                     New-CMApplication -whatif @ApplicationArguments
                     # Need to loop to do multiple deployment types
-        # The value of installBehavior must be one of 3 values (Not sure if we can enforce this maybe a try catch). InstallForSystem, InstallForSystemIfResourceIsDeviceOtherwiseInstallForUser,InstallForUser
-        # The value of installationprogramvisibility must be one of 4 values. Normal, Minimized, Maximized, Hidden
-        # Language specifices an array of languages. Not sure we want to deal with that right now.
-        # LogonRequirementType must be one of 3 values. OnlyWhenNoUserLoggedOn, OnlyWhenUserLoggedOn, WhereOrNotUserLoggedOn
-        # OnSlowNetworkMode must be one of 3 values. DoNothing, Download,DownloadContentForStreaming
-        # Need to figure out the installer type.
+        # InstallationBehaviorType must be one of 3 values (Not sure if we can enforce this maybe a try catch). InstallForSystem, InstallForSystemIfResourceIsDeviceOtherwiseInstallForUser,InstallForUser
+        # UserInteractionMode must be one of 4 values. Normal, Minimized, Maximized, Hidden
+        # AddLanguage specifices an array of languages. Not sure we want to deal with that right now.
+        # LogonRequirementType must be one of 3 values. OnlyWhenNoUserLoggedOn, OnlyWhenUserLoggedOn, WhetherOrNotUserLoggedOn
+        # SlowNetworkDeploymentMode must be one of 2 values. DoNothing, Download
+        # RebootBehavior must be one of 4 BaseOnExitCode, NoAction, ProgramReboot, ForceReboot
+        # ForceScriptDetection32Bit Needed?
+        # RepairCommand Needed?
+        # ScriptFile detect for deployment. Future improvement.
+        # UnisntallContentLocation future improvement. Can be different then the contentlocation. Nice for solidworks and other large install media that doesn't need that media.
                     foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
                         $DepName = $deptype.Name
                         $DeploymentTypeArguments = @{
+                            # AddDetectionClause = Figure this out. See notes below. Also need to deal with group detection clauses.
+                            # AddRequirement = Figure this out. Maybe this is a future improvement. Accepts array of requirement objects.
+                            AddLanguage = $depType.Language
                             ApplicationName = $NewAppName
-                            DeploymentTypeName = $NewAppName + $DepName
-                            InstallationFileLocation = $ApplicationPath
-                            ForceforUnknownPublisher = $true
-                            MsiInstaller = $true
-                            InstallationBehaviorType = $deptype.installBehavior
-                            InstallationProgram = $deptype.installCMD
-                            InstallationProgramVisibility = $deptype.userInteraction
-                            AdministratorComment = $depType.adminComments
+                            CacheClient = $deptype.cacheContent
+                            Comment = $depType.adminComments
+                            ContentFallback = $deptype.contentFallback
                             ContentLocation = $depType.ContentLocation
+                            DeploymentTypeName = $NewAppName + " $DepName"
                             EnableBranchCache = $deptype.branchCache
-                            EnableContentLocationFallback = $deptype.contentFallback
-                            EsitmatedInstallationTimeMins = $deptype.esitmatedRuntime
-                            Force32BitInstaller = $deptype.runAs32Bit
-                            Language = $depType.Language
+                            EsitmatedRuntimeMins = $deptype.esitmatedRuntime
+                            Force32Bit = $deptype.runAs32Bit
+                            InstallationBehaviorType = $deptype.installBehavior
+                            InstallCommand = $deptype.installCMD
                             LogonRequirementType = $depType.logonRequired
-                            MaximumAllowedRunTimeMins = $depType.maxRuntime
-                            OnSlowNetworkMode = $depType.onSlowNetwork
-                            PersistContentInClientCache = $deptype.cacheContent
+                            MaximumRuntimeMins = $depType.maxRuntime
+                            # ProductCode = Figure this out. It states it will over write any other detection.
+                            RebootBehavior = $depType.rebootBehavior
+                            SlowNetworkDeploymentMode = $depType.onSlowNetwork
                             UninstallProgram = $depType.uninstallCMD
+                            UserInteractionmode = $deptype.userInteraction
                         }
-                        # Add-CMDeploymentType @DeploymentTypeArguments -whatif
+                        Write-Output $DeploymentTypeArguments
+                        # This command is deprecated. Need to use one of the new ones. Add-CMDeploymentType @DeploymentTypeArguments -whatif
+                        # Add-CMMsiDeploymentType, Add-CMScriptDeploymentType There are others but these seem the most common. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmdeploymenttype?view=sccm-ps
                     }
+        # Need to build out the Detection clause using the New-CMDetectionClause functions. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmscriptdeploymenttype?view=sccm-ps
+        # The detection clause will need to be dumped into a variable for use in the Add-CM deployment type function call.
                     $ContentDistributionArguments = @{
                         ApplicationName = $ApplicationName
                         DistributionPointGroupName = $DPGroupName
