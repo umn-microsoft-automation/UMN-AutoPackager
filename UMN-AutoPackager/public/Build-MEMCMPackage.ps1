@@ -71,7 +71,7 @@ function Build-MEMCMPackage {
                     # Building out the Application Name based on the pattern if used otherwise using the specific name in the field
                     $AppName = $PkgObject.packagingTargets.Name
                     if ($AppName -match '}-') {
-                        Write-Verbose -Message "$AppName is a pattern."
+                        # Write-Verbose -Message "$AppName is a pattern."
                         $BuildName = $AppName -split '-' -replace '[{}]',''
                         foreach ($item in $BuildName) {
                             # Write-Verbose -Message "$item is being processed"
@@ -86,18 +86,18 @@ function Build-MEMCMPackage {
                         $NewAppName = $NewAppName -replace ".$"
                     }
                     else {
-                        Write-verbose -Message "No pattern using value of packagingTargets.Name"
+                        # Write-verbose -Message "No pattern using value of packagingTargets.Name"
                         $NewAppName = $AppName
                     }
                     $baseAppName = $ConfigMgrObject.baseAppName
                     if (-not [string]::IsNullOrEmpty($baseAppName)) {
-                        Write-Verbose -Message "Baseapp name found using: $baseAppName"
+                        # Write-Verbose -Message "Baseapp name found using: $baseAppName"
                         $NewAppName = $NewAppName.Insert(0,"$baseAppName-")
                     }
                     Write-Verbose -Message "Application name is $NewAppName"
                     $LocalAppName = $PkgObject.packagingTargets.localizedApplicationName
                     if ($LocalAppName -match '} ') {
-                        Write-Verbose -Message "$LocalAppName is a pattern."
+                        # Write-Verbose -Message "$LocalAppName is a pattern."
                         $LocalBuildName = $LocalAppName -split ' ' -replace '[{}]',''
                         foreach ($localitem in $LocalBuildName) {
                             # Write-Verbose -Message "$localitem is being processed"
@@ -139,7 +139,7 @@ function Build-MEMCMPackage {
                     foreach ($appA in $ApplicationArguments.Keys) {
                         # Write-Verbose -Message "Processing $appA"
                         if (-not $ApplicationArguments.$appA){
-                            Write-Verbose -Message "$appA value is empty/null marking for removal."
+                            # Write-Verbose -Message "$appA value is empty/null marking for removal."
                             $null = $list.Add($appA)
                         }
                     }
@@ -191,7 +191,7 @@ function Build-MEMCMPackage {
                         foreach ($DTArgue in $DeploymentTypeArguments.Keys) {
                             # Write-Verbose -Message "Processing $DTArgue"
                             if (-not $DeploymentTypeArguments.$DTArgue){
-                                Write-Verbose -Message "$DTArgue value is empty/null marking for removal."
+                                # Write-Verbose -Message "$DTArgue value is empty/null marking for removal."
                                 $null = $DepTypelist.Add($DTArgue)
                             }
                         }
@@ -199,7 +199,8 @@ function Build-MEMCMPackage {
                             $DeploymentTypeArguments.Remove($item)
                         }
                         # Build an array with all the detection methods and use that array in the call for -AddDetectionClause
-                        $DetectionClauseArray = New-Object System.Collections.ArrayList
+                        $i = 0
+                        $DetectionClause = New-Object System.Collections.ArrayList
                         foreach ($detectionMethod in $depType.detectionMethods){
                             $DetectionClauseArguments = @{
                                 DirectoryName = $detectionMethod.DirectoryName
@@ -221,7 +222,7 @@ function Build-MEMCMPackage {
                             foreach ($DetClause in $DetectionClauseArguments.Keys) {
                                 # Write-Verbose -Message "Processing $DetClause"
                                 if (-not $DetectionClauseArguments.$DetClause){
-                                    Write-Verbose -Message "$DetClause value is empty/null marking for removal."
+                                    # Write-Verbose -Message "$DetClause value is empty/null marking for removal."
                                     $null = $DetClauselist.Add($DetClause)
                                 }
                             }
@@ -231,37 +232,54 @@ function Build-MEMCMPackage {
                             # Check the type and run the proper command to create the DetectionClause variable
                             # Add it to the DetectionClauseArray
                             # Once all the detection methods are done add the stuff to make it work with the new deployment type splat
+                            $detectname = "clause" + $i
+                            Write-Verbose -Message "$detectname"
                             if ($detectionMethod.type -eq "RegistryKey") {
                                 Write-Verbose -Message "Creating RegistryKey detectionclause"
                                 $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
-                                $null = $DetectionClauseArray.Add($clause)
+                                $i++
+                                New-Variable -Name $detectname -Value $clause
+                                $DetectionClause.add("$($detectname)")
+                                Write-Verbose -Message "Created $detectname"
                             }
                             elseif ($detectionMethod.type -eq "RegistryKeyValue" ) {
                                 Write-Verbose -Message "Creating RegistryKeyValue detectionclause"
                                 $clause = New-CMDetectionClauseRegistryKeyValue @DetectionClauseArguments
-                                $null = $DetectionClauseArray.Add($clause)
+                                $i++
+                                New-Variable -Name $detectname -Value $clause
+                                $DetectionClause.add("$($detectname)")
+                                Write-Verbose -Message "Created $detectname"
                             }
                             elseif ($detectionMethod.type -eq "Directory") {
                                 Write-Verbose -Message "Creating Directory detectionclause"
                                 $clause = New-CMDetectionClauseDirectory @DetectionClauseArguments
-                                $null = $DetectionClauseArray.Add($clause)
+                                $i++
+                                New-Variable -Name $detectname -Value $clause
+                                $DetectionClause.add("$($detectname)")
+                                Write-Verbose -Message "Created $detectname"
                             }
                             elseif ($detectionMethod.type -eq "File") {
                                 Write-Verbose -Message "Creating File detectionclause"
                                 $clause = New-CMDetectionClauseFile @DetectionClauseArguments
-                                $null = $DetectionClauseArray.Add($clause)
+                                $i++
+                                New-Variable -Name $detectname -Value $clause
+                                $DetectionClause.add("$($detectname)")
+                                Write-Verbose -Message "Created $detectname"
                             }
                             elseif ($detectionMethod.type -eq "WindowsInstaller") {
                                 Write-Verbose -Message "Creating Windows detectionclause"
                                 $clause = New-CMDetectionClauseWindowsInstaller @DetectionClauseArguments
-                                $null = $DetectionClauseArray.Add($clause)
+                                $i++
+                                New-Variable -Name $detectname -Value $clause
+                                $DetectionClause.add("$($detectname)")
+                                Write-Verbose -Message "Created $detectname"
                             }
                             else {
                                 Write-Verbose -Message "Not a known type of detection clause"
                             }
-                            Write-Output $detectionClauseArray
-                            $DeploymentTypeArguments.add("AddDetectionClause",$DetectionClauseArray)
                         }
+                        $DeploymentTypeArguments.add("AddDetectionClause",$DetectionClause)
+                        write-output $DeploymentTypeArguments
                         # Add-CMMsiDeploymentType, Add-CMScriptDeploymentType There are others but these seem the most common. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmdeploymenttype?view=sccm-ps
                         if ($depType.installerType -eq "Script") {
                             Add-CMScriptDeploymentType -WhatIf @DeploymentTypeArguments
