@@ -159,7 +159,7 @@ function Build-MEMCMPackage {
         # ForceScriptDetection32Bit Needed?
         # RepairCommand Needed?
         # ScriptFile detect for deployment. Future improvement.
-        # UnisntallContentLocation future improvement. Can be different then the contentlocation. Nice for solidworks and other large install media that doesn't need that media.
+        # UninntallContentLocation future improvement. Can be different then the contentlocation. Nice for solidworks and other large install media that doesn't need that media.
                     foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
                         $DepName = $deptype.Name
                         $DeploymentTypeArguments = @{
@@ -199,11 +199,68 @@ function Build-MEMCMPackage {
                             $DeploymentTypeArguments.Remove($item)
                         }
                         # Build an array with all the detection methods and use that array in the call for -AddDetectionClause
-                        foreach ($detectionMethod in $PkgObject.packagingTargets.deploymentTypes.detectionMethods){
-                            $DetectionClauseArguements = @{
-                                DirectoryName = 
-                                PropertyType = 
+                        $DetectionClauseArray = New-Object System.Collections.ArrayList
+                        foreach ($detectionMethod in $depType.detectionMethods){
+                            $DetectionClauseArguments = @{
+                                DirectoryName = $detectionMethod.DirectoryName
+                                Existance = $detectionMethod.Existance
+                                ExpectedValue = $detectionMethod.ExpectedValue
+                                ExpressionOperator = $detectionMethod.ExpressionOperator
+                                FileName = $detectionMethod.FileName
+                                Hive = $detectionMethod.Hive
+                                Is64Bit = $detectionMethod.Is64Bit
+                                KeyName = $detectionMethod.KeyName
+                                Path = $detectionMethod.Path
+                                ProductCode = $detectionMethod.ProductCode
+                                PropertyType = $detectionMethod.PropertyType
+                                Value = $detectionMethod.Value
+                                ValueName = $detectionMethod.ValueName
                             }
+                            # Removing null or empty values from the hashtable
+                            $DetClauselist = New-Object System.Collections.ArrayList
+                            foreach ($DetClause in $DetectionClauseArguments.Keys) {
+                                # Write-Verbose -Message "Processing $DetClause"
+                                if (-not $DetectionClauseArguments.$DetClause){
+                                    Write-Verbose -Message "$DetClause value is empty/null marking for removal."
+                                    $null = $DetClauselist.Add($DetClause)
+                                }
+                            }
+                            foreach ($item in $DetClauselist) {
+                                $DetectionClauseArguments.Remove($item)
+                            }
+                            # Check the type and run the proper command to create the DetectionClause variable
+                            # Add it to the DetectionClauseArray
+                            # Once all the detection methods are done add the stuff to make it work with the new deployment type splat
+                            if ($detectionMethod.type -eq "RegistryKey") {
+                                Write-Verbose -Message "Creating RegistryKey detectionclause"
+                                $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
+                                $null = $DetectionClauseArray.Add($clause)
+                            }
+                            elseif ($detectionMethod.type -eq "RegistryKeyValue" ) {
+                                Write-Verbose -Message "Creating RegistryKeyValue detectionclause"
+                                $clause = New-CMDetectionClauseRegistryKeyValue @DetectionClauseArguments
+                                $null = $DetectionClauseArray.Add($clause)
+                            }
+                            elseif ($detectionMethod.type -eq "Directory") {
+                                Write-Verbose -Message "Creating Directory detectionclause"
+                                $clause = New-CMDetectionClauseDirectory @DetectionClauseArguments
+                                $null = $DetectionClauseArray.Add($clause)
+                            }
+                            elseif ($detectionMethod.type -eq "File") {
+                                Write-Verbose -Message "Creating File detectionclause"
+                                $clause = New-CMDetectionClauseFile @DetectionClauseArguments
+                                $null = $DetectionClauseArray.Add($clause)
+                            }
+                            elseif ($detectionMethod.type -eq "WindowsInstaller") {
+                                Write-Verbose -Message "Creating Windows detectionclause"
+                                $clause = New-CMDetectionClauseWindowsInstaller @DetectionClauseArguments
+                                $null = $DetectionClauseArray.Add($clause)
+                            }
+                            else {
+                                Write-Verbose -Message "Not a known type of detection clause"
+                            }
+                            Write-Output $detectionClauseArray
+                            $DeploymentTypeArguments.add("AddDetectionClause",$DetectionClauseArray)
                         }
                         # Add-CMMsiDeploymentType, Add-CMScriptDeploymentType There are others but these seem the most common. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmdeploymenttype?view=sccm-ps
                         if ($depType.installerType -eq "Script") {
