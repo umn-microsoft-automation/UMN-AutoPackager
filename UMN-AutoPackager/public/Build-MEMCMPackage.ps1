@@ -186,7 +186,6 @@ function Build-MEMCMPackage {
                             UninstallProgram = $depType.uninstallCMD
                             UserInteractionmode = $deptype.userInteraction
                         }
-                        Write-Output $DeploymentTypeArguments
                         # Removing null or empty values from the hashtable
                         $DepTypelist = New-Object System.Collections.ArrayList
                         foreach ($DTArgue in $DeploymentTypeArguments.Keys) {
@@ -199,13 +198,14 @@ function Build-MEMCMPackage {
                         foreach ($item in $DepTypelist) {
                             $DeploymentTypeArguments.Remove($item)
                         }
-                        Write-Output $DeploymentTypeArguments
-                        # This command is deprecated. Need to use one of the new ones. Add-CMDeploymentType @DeploymentTypeArguments -whatif
-                        # Add-CMMsiDeploymentType, Add-CMScriptDeploymentType There are others but these seem the most common. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmdeploymenttype?view=sccm-ps
+                        # Build an array with all the detection methods and use that array in the call for -AddDetectionClause
                         foreach ($detectionMethod in $PkgObject.packagingTargets.deploymentTypes.detectionMethods){
-                         # Check for ProductCode I suspect this needs to be dealt with seperate. Maybe not since there is a function called windowsinstaller
-                         # Build an array with all the detection methods and use that array in the call for -AddDetectionClause
+                            $DetectionClauseArguements = @{
+                                DirectoryName = 
+                                PropertyType = 
+                            }
                         }
+                        # Add-CMMsiDeploymentType, Add-CMScriptDeploymentType There are others but these seem the most common. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmdeploymenttype?view=sccm-ps
                         if ($depType.installerType -eq "Script") {
                             Add-CMScriptDeploymentType -WhatIf @DeploymentTypeArguments
                         }

@@ -6,6 +6,8 @@
     "versionSource" : "Filename",
     "sourcePath"        : "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US",
     "configNotes"   : "General comments about this config file",
+    "owner" : "UMN-AutoPackager",
+    "supportContact" : "Helpdesk@something",
     "packagingTargets" : [
         {
             "type" : "MEMCM-Application",
@@ -20,42 +22,110 @@
             "allowTSUsage" : true,
             "localizedApplicationName" : "{publisher} {productName} {currentVersion}",
             "userCategories" : [ "cat1", "cat2" ],
-            "userDocumentationLink" : "documentation",
+            "userDocumentationLink" : "https://firefox-source-docs.mozilla.org/browser/index.html",
             "userDocumentationText" : "Firefox Docs",
-            "privacyLink" : "privacy link",
+            "privacyLink" : "https://www.mozilla.org/en-US/firefox/privacy/",
             "localizedDescription" : "",
             "keywords" : [ "keyword1", "keyword2" ],
             "featuredApp" : false,
+            "IconLocationFile" : "",
             "deploymentTypes" : [
                 {
                     "name" : "x64",
-                    "installerType" : "script",
+                    "installerType" : "Script",
                     "adminComments" : "comment",
-                    "language" : "English",
+                    "language" : "en-US",
                     "cacheContent" : false,
                     "branchCache" : false,
                     "contentFallback" : false,
-                    "onSlowNetwork" : "download",
-                    "installCMD" : null,
+                    "onSlowNetwork" : "Download",
+                    "installCMD" : "Install-Firefox.ps1",
                     "uninstallCMD" : null,
                     "runAs32Bit" : false,
-                    "installBehavior" : "system",
-                    "logonRequired" : false,
-                    "userInteraction" : "hidden",
+                    "installBehavior" : "InstallForSystem",
+                    "logonRequired" : "WhetherOrNotUserLoggedOn",
+                    "userInteraction" : "Hidden",
                     "estimatedRuntime" : "5",
                     "maxRuntime" : "15",
-                    "rebootBehavior" : "ExitCode",
+                    "rebootBehavior" : "BasedOnExitCode",
+                    "ContentLocation" : "\\\\ad.umn.edu\\configmgr\\UMN\\Dev\\UM5\\Applications\\Mozilla\\Firefox\\",
+                    "scriptLanguage" : "Powershell",
                     "detectionMethods" : [
                         {
-                            "type" : "registry"
+                            "type" : "RegistryKey",
+                            "Existance" : false,
+                            "Hive" : "LocalMachine",
+                            "Is64Bit" : false,
+                            "KeyName" : "Mozilla"
                         },
                         {
-                            "type" : "file"
+                            "type" : "RegistryKeyValue",
+                            "Existance" : false,
+                            "ExpectedValue" : "87.0",
+                            "ExpressionOperator" : "GreaterEquals",
+                            "Hive" : "LocalMachine",
+                            "Is64Bit" : false,
+                            "KeyName" : "SOFTWARE\\mozilla.org\\Mozilla",
+                            "PropertyType" : "Version",
+                            "Value" : true,
+                            "ValueName" : "CurrentVersion"
                         }
                     ]
                 },
                 {
-                    "name" : "x86"
+                    "name" : "x86",
+                    "installerType" : "Script",
+                    "adminComments" : "comment",
+                    "language" : "en-US",
+                    "cacheContent" : false,
+                    "branchCache" : false,
+                    "contentFallback" : false,
+                    "onSlowNetwork" : "Download",
+                    "installCMD" : "Install-Firefox.ps1",
+                    "uninstallCMD" : null,
+                    "runAs32Bit" : false,
+                    "installBehavior" : "InstallForSystem",
+                    "logonRequired" : false,
+                    "userInteraction" : "Hidden",
+                    "estimatedRuntime" : "5",
+                    "maxRuntime" : "15",
+                    "rebootBehavior" : "BasedOnExitCode",
+                    "ContentLocation" : "\\\\ad.umn.edu\\configmgr\\UMN\\Dev\\UM5\\Applications\\Mozilla\\Firefox\\",
+                    "scriptLanguage" : "Powershell",
+                    "detectionMethods" : [
+                        {
+                            "type" : "Directory",
+                            "DirectoryName" : "Mozilla Firefox",
+                            "Existance" : false,
+                            "ExpectedValue" : "2020-11-30T08:00:00Z",
+                            "ExpressionOperator" : "GreaterThan",
+                            "Is64Bit" : false,
+                            "Path" : "C:\\Program Files\\",
+                            "PropertyType" : "DateModified",
+                            "Value" : ""
+                        },
+                        {
+                            "type" : "File",
+                            "Existance" : false,
+                            "ExpectedValue" : "87.0.0.7747",
+                            "ExpressionOperator" : "GreaterEquals",
+                            "FileName" : "Firefox.exe",
+                            "Is64Bit" : false,
+                            "Path" : "C:\\Program Files\\Mozilla\\",
+                            "PropertyType" : "Version",
+                            "Value" : ""
+                        },
+                        {
+                            "type" : "WindowsInstaller",
+                            "Existance" : true,
+                            "ExpectedValue" : "",
+                            "ExpressionOperator" : "",
+                            "ProductCode" : "<GUID Code>",
+                            "Is64Bit" : false,
+                            "PropertyType" : null,
+                            "Value" : ""
+                        }
+                    ]
                 }
             ]
         }

@@ -1,28 +1,13 @@
 {
-  "CompanyName": "MyCompany",
-  "LastModified": "2/1/2021 11:22:58 AM",
+  "CompanyName": "University of Minnesota",
+  "LastModified": "3/24/2021 9:34:35 AM",
   "ConfigMgr": [
     {
-      "Site": "site.something.com",
-      "SiteCode": "COM",
+      "Site": "cmlab-um5-site",
+      "SiteCode": "UM5",
       "DownloadLocationPath": "C:\\Temp",
-      "ApplicationContentPath": "\\\\AppStorage.somewhere\\"
-    },
-    {
-      "Site": "something.something.something",
-      "SiteCode": "DOD",
-      "DownloadLocationPath": "\\\\path.somewhere",
-      "ApplicationContentPath": "\\\\App.somewhere.content"
-    }
-  ],
-  "RecipeLocations": [
-    {
-      "locationType": "directory",
-      "locationUri": "C:\\Temp"
-    },
-    {
-      "locationType": "directory",
-      "locationUri": "\\\\files.somewhere\\"
+      "ApplicationContentPath": "\\\\ad.umn.edu\\configmgr\\UMN\\Dev\\autopackage\\UM5",
+      "BaseappName": "CM"
     }
   ]
 }
