@@ -138,7 +138,7 @@ function Build-MEMCMPackage {
                     $list = New-Object System.Collections.ArrayList
                     foreach ($appA in $ApplicationArguments.Keys) {
                         # Write-Verbose -Message "Processing $appA"
-                        if (-not $ApplicationArguments.$appA){
+                        if ([string]::IsNullOrWhiteSpace($ApplicationArguments.$appA)){
                             # Write-Verbose -Message "$appA value is empty/null marking for removal."
                             $null = $list.Add($appA)
                         }
@@ -167,13 +167,13 @@ function Build-MEMCMPackage {
                             # AddRequirement = Figure this out. Maybe this is a future improvement. Accepts array of requirement objects.
                             AddLanguage = $depType.Language
                             ApplicationName = $NewAppName
-                            CacheClient = $deptype.cacheContent
+                            CacheContent = $deptype.cacheContent
                             Comment = $depType.adminComments
                             ContentFallback = $deptype.contentFallback
                             ContentLocation = $depType.ContentLocation
                             DeploymentTypeName = $NewAppName + " $DepName"
                             EnableBranchCache = $deptype.branchCache
-                            EsitmatedRuntimeMins = $deptype.esitmatedRuntime
+                            EstimatedRuntimeMins = $deptype.estimatedRuntime
                             Force32Bit = $deptype.runAs32Bit
                             InstallationBehaviorType = $deptype.installBehavior
                             InstallCommand = $deptype.installCMD
@@ -190,7 +190,7 @@ function Build-MEMCMPackage {
                         $DepTypelist = New-Object System.Collections.ArrayList
                         foreach ($DTArgue in $DeploymentTypeArguments.Keys) {
                             # Write-Verbose -Message "Processing $DTArgue"
-                            if (-not $DeploymentTypeArguments.$DTArgue){
+                            if ([string]::IsNullOrWhiteSpace($DeploymentTypeArguments.$DTArgue)){
                                 # Write-Verbose -Message "$DTArgue value is empty/null marking for removal."
                                 $null = $DepTypelist.Add($DTArgue)
                             }
@@ -198,13 +198,14 @@ function Build-MEMCMPackage {
                         foreach ($item in $DepTypelist) {
                             $DeploymentTypeArguments.Remove($item)
                         }
-                        Write-Output $DeploymentTypeArguments
-                        # Build an array with all the detection methods and use that array in the call for -AddDetectionClause
+                        # Write-Output $DeploymentTypeArguments
+                        # Write-Output "---------------------------------------"
+                        # Build an hashtable with all the detection methods and types
                         $count = 0
                         foreach ($detectionMethod in $depType.detectionMethods){
                             $DetectionClauseArguments = @{
                                 DirectoryName = $detectionMethod.DirectoryName
-                                Existance = $detectionMethod.Existance
+                                Existence = $detectionMethod.Existence
                                 ExpectedValue = $detectionMethod.ExpectedValue
                                 ExpressionOperator = $detectionMethod.ExpressionOperator
                                 FileName = $detectionMethod.FileName
@@ -221,7 +222,7 @@ function Build-MEMCMPackage {
                             $DetClauselist = New-Object System.Collections.ArrayList
                             foreach ($DetClause in $DetectionClauseArguments.Keys) {
                                 # Write-Verbose -Message "Processing $DetClause"
-                                if (-not $DetectionClauseArguments.$DetClause){
+                                if ([string]::IsNullOrWhiteSpace($DetectionClauseArguments.$DetClause)){
                                     # Write-Verbose -Message "$DetClause value is empty/null marking for removal."
                                     $null = $DetClauselist.Add($DetClause)
                                 }
@@ -229,6 +230,7 @@ function Build-MEMCMPackage {
                             foreach ($item in $DetClauselist) {
                                 $DetectionClauseArguments.Remove($item)
                             }
+                            Write-output $DetectionClauseArguments
                             # Check the type and run the proper command to create the DetectionClause variable
                             if ($count -eq 0) {
                                 write-Verbose -Message "Count is equal to 0"
@@ -268,9 +270,11 @@ function Build-MEMCMPackage {
                                 }
                                 # Create 1st Deployment Type to the application
                                 if ($depType.installerType -eq "Script") {
+                                    Write-Verbose -Message "Adding Script Deployment Type."
                                     Add-CMScriptDeploymentType -WhatIf @DeploymentTypeArguments -AddDetectionClause $clause
                                 }
                                 elseif ($depType.installerType -eq "Msi") {
+                                    Write-Verbose -Message "Adding MSI Deployment Type."
                                     Add-CMMsiDeploymentType -Whatif @DeploymentTypeArguments -AddDetectionClause $clause
                                 }
                             }
@@ -307,7 +311,7 @@ function Build-MEMCMPackage {
                                 }
                                 # Create 1st Deployment Type to the application
                                 if ($depType.installerType -eq "Script") {
-                                    Set-CMScriptDeploymentType -WhatIf -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
+                                    Set-CMScriptDeploymentType -WhatIf -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause -debug
                                 }
                                 elseif ($depType.installerType -eq "Msi") {
                                     Set-CMMsiDeploymentType -Whatif -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
