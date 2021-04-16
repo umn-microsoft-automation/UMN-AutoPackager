@@ -148,7 +148,7 @@ function Build-MEMCMPackage {
                     }
                     # Building ConfigMgr application
         # Remove Whatifs once ready to merge with master
-                    New-CMApplication -whatif @ApplicationArguments
+                   # New-CMApplication -WhatIf @ApplicationArguments
         # InstallationBehaviorType must be one of 3 values (Not sure if we can enforce this maybe a try catch). InstallForSystem, InstallForSystemIfResourceIsDeviceOtherwiseInstallForUser,InstallForUser
         # UserInteractionMode must be one of 4 values. Normal, Minimized, Maximized, Hidden
         # AddLanguage specifices an array of languages. Not sure we want to deal with that right now. Accepts LCID language codes. https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-lcid/a9eac961-e77d-41a6-90a5-ce1a8b0cdb9c
@@ -182,6 +182,7 @@ function Build-MEMCMPackage {
                             # ProductCode = Figure this out. It states it will over write any other detection.
                             RebootBehavior = $depType.rebootBehavior
                             ScriptLanguage = $depType.scriptLanguage
+                            ScriptText = $deptype.ScriptText
                             SlowNetworkDeploymentMode = $depType.onSlowNetwork
                             UninstallProgram = $depType.uninstallCMD
                             UserInteractionmode = $deptype.userInteraction
@@ -232,8 +233,6 @@ function Build-MEMCMPackage {
                             }
                             Write-output $DetectionClauseArguments
                             # Check the type and run the proper command to create the DetectionClause variable
-                            if ($count -eq 0) {
-                                write-Verbose -Message "Count is equal to 0"
                                 if ($detectionMethod.type -eq "RegistryKey") {
                                     Write-Verbose -Message "Creating RegistryKey detectionclause"
                                     $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
@@ -262,61 +261,17 @@ function Build-MEMCMPackage {
                                 else {
                                     Write-Verbose -Message "Not a known type of detection clause"
                                 }
-                                if ($depType.installerType -eq "Script") {
-                                    Add-CMScriptDeploymentType -WhatIf @DeploymentTypeArguments
-                                }
-                                elseif ($depType.installerType -eq "Msi") {
-                                    Add-CMMsiDeploymentType -Whatif @DeploymentTypeArguments
-                                }
+                                $DeploymentTypeArguments.add("AddDetectionClause",$clause)
+                                Write-Output $DeploymentTypeArguments
                                 # Create 1st Deployment Type to the application
                                 if ($depType.installerType -eq "Script") {
                                     Write-Verbose -Message "Adding Script Deployment Type."
-                                    Add-CMScriptDeploymentType -WhatIf @DeploymentTypeArguments -AddDetectionClause $clause
+                                    Add-CMScriptDeploymentType @DeploymentTypeArguments
                                 }
                                 elseif ($depType.installerType -eq "Msi") {
                                     Write-Verbose -Message "Adding MSI Deployment Type."
-                                    Add-CMMsiDeploymentType -Whatif @DeploymentTypeArguments -AddDetectionClause $clause
+                                    Add-CMMsiDeploymentType @DeploymentTypeArguments
                                 }
-                            }
-                            # Add all the other deployment types to the application
-                            if ($count -ne 0) {
-                                Write-Verbose -Message "Count is greater then 0. Count is $count"
-                                if ($detectionMethod.type -eq "RegistryKey") {
-                                    Write-Verbose -Message "Creating RegistryKey detectionclause"
-                                    $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
-                                    $count++
-                                }
-                                elseif ($detectionMethod.type -eq "RegistryKeyValue" ) {
-                                    Write-Verbose -Message "Creating RegistryKeyValue detectionclause"
-                                    $clause = New-CMDetectionClauseRegistryKeyValue @DetectionClauseArguments
-                                    $count++
-                                }
-                                elseif ($detectionMethod.type -eq "Directory") {
-                                    Write-Verbose -Message "Creating Directory detectionclause"
-                                    $clause = New-CMDetectionClauseDirectory @DetectionClauseArguments
-                                    $count++
-                                }
-                                elseif ($detectionMethod.type -eq "File") {
-                                    Write-Verbose -Message "Creating File detectionclause"
-                                    $clause = New-CMDetectionClauseFile @DetectionClauseArguments
-                                    $count++
-                                }
-                                elseif ($detectionMethod.type -eq "WindowsInstaller") {
-                                    Write-Verbose -Message "Creating Windows detectionclause"
-                                    $clause = New-CMDetectionClauseWindowsInstaller @DetectionClauseArguments
-                                    $count++
-                                }
-                                else {
-                                    Write-Verbose -Message "Not a known type of detection clause"
-                                }
-                                # Create 1st Deployment Type to the application
-                                if ($depType.installerType -eq "Script") {
-                                    Set-CMScriptDeploymentType -WhatIf -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause -debug
-                                }
-                                elseif ($depType.installerType -eq "Msi") {
-                                    Set-CMMsiDeploymentType -Whatif -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
-                                }
-                            }
                         }
                     }
         # Need to build out the Detection clause using the New-CMDetectionClause functions. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmscriptdeploymenttype?view=sccm-ps
