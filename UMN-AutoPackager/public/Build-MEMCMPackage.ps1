@@ -162,6 +162,7 @@ function Build-MEMCMPackage {
         # UninntallContentLocation future improvement. Can be different then the contentlocation. Nice for solidworks and other large install media that doesn't need that media.
                     foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
                         $DepName = $deptype.Name
+                        Write-Verbose -Message "Processing $DepName..............................."
                         $DeploymentTypeArguments = @{
                             # AddDetectionClause = Figure this out. See notes below. Also need to deal with group detection clauses.
                             # AddRequirement = Figure this out. Maybe this is a future improvement. Accepts array of requirement objects.
@@ -199,11 +200,10 @@ function Build-MEMCMPackage {
                         foreach ($item in $DepTypelist) {
                             $DeploymentTypeArguments.Remove($item)
                         }
-                        # Write-Output $DeploymentTypeArguments
-                        # Write-Output "---------------------------------------"
                         # Build an hashtable with all the detection methods and types
                         $count = 0
                         foreach ($detectionMethod in $depType.detectionMethods){
+                            Write-Verbose -Message "Processing $detectionMethod......................Count is $Count"
                             $DetectionClauseArguments = @{
                                 DirectoryName = $detectionMethod.DirectoryName
                                 Existence = $detectionMethod.Existence
@@ -233,10 +233,11 @@ function Build-MEMCMPackage {
                             }
                             Write-output $DetectionClauseArguments
                             # Check the type and run the proper command to create the DetectionClause variable
+                            if ($count -eq 0){
                                 if ($detectionMethod.type -eq "RegistryKey") {
                                     Write-Verbose -Message "Creating RegistryKey detectionclause"
                                     $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
-                                    $icount++
+                                    $count++
                                 }
                                 elseif ($detectionMethod.type -eq "RegistryKeyValue" ) {
                                     Write-Verbose -Message "Creating RegistryKeyValue detectionclause"
@@ -272,6 +273,48 @@ function Build-MEMCMPackage {
                                     Write-Verbose -Message "Adding MSI Deployment Type."
                                     Add-CMMsiDeploymentType @DeploymentTypeArguments
                                 }
+                            }
+                            if ($count -ge 1){
+                                if ($detectionMethod.type -eq "RegistryKey") {
+                                    Write-Verbose -Message "Creating RegistryKey detectionclause"
+                                    $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
+                                    $count++
+                                }
+                                elseif ($detectionMethod.type -eq "RegistryKeyValue" ) {
+                                    Write-Verbose -Message "Creating RegistryKeyValue detectionclause"
+                                    $clause = New-CMDetectionClauseRegistryKeyValue @DetectionClauseArguments
+                                    $count++
+                                }
+                                elseif ($detectionMethod.type -eq "Directory") {
+                                    Write-Verbose -Message "Creating Directory detectionclause"
+                                    $clause = New-CMDetectionClauseDirectory @DetectionClauseArguments
+                                    $count++
+                                }
+                                elseif ($detectionMethod.type -eq "File") {
+                                    Write-Verbose -Message "Creating File detectionclause"
+                                    $clause = New-CMDetectionClauseFile @DetectionClauseArguments
+                                    $count++
+                                }
+                                elseif ($detectionMethod.type -eq "WindowsInstaller") {
+                                    Write-Verbose -Message "Creating Windows detectionclause"
+                                    $clause = New-CMDetectionClauseWindowsInstaller @DetectionClauseArguments
+                                    $count++
+                                }
+                                else {
+                                    Write-Verbose -Message "Not a known type of detection clause"
+                                }
+                                $DeploymentTypeArguments.add("AddDetectionClause",$clause)
+                                Write-Output $DeploymentTypeArguments
+                                # Create 1st Deployment Type to the application
+                                if ($depType.installerType -eq "Script") {
+                                    Write-Verbose -Message "Setting Script Deployment Type."
+                                    Set-CMScriptDeploymentType -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
+                                }
+                                elseif ($depType.installerType -eq "Msi") {
+                                    Write-Verbose -Message "Adding MSI Deployment Type."
+                                    Set-CMMsiDeploymentType @DeploymentTypeArguments
+                                }
+                            }
                         }
                     }
         # Need to build out the Detection clause using the New-CMDetectionClause functions. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmscriptdeploymenttype?view=sccm-ps
