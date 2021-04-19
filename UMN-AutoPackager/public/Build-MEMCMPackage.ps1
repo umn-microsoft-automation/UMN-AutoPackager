@@ -148,7 +148,7 @@ function Build-MEMCMPackage {
                     }
                     # Building ConfigMgr application
         # Remove Whatifs once ready to merge with master
-                   # New-CMApplication -WhatIf @ApplicationArguments
+                   New-CMApplication @ApplicationArguments
         # InstallationBehaviorType must be one of 3 values (Not sure if we can enforce this maybe a try catch). InstallForSystem, InstallForSystemIfResourceIsDeviceOtherwiseInstallForUser,InstallForUser
         # UserInteractionMode must be one of 4 values. Normal, Minimized, Maximized, Hidden
         # AddLanguage specifices an array of languages. Not sure we want to deal with that right now. Accepts LCID language codes. https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-lcid/a9eac961-e77d-41a6-90a5-ce1a8b0cdb9c
@@ -162,9 +162,9 @@ function Build-MEMCMPackage {
         # UninntallContentLocation future improvement. Can be different then the contentlocation. Nice for solidworks and other large install media that doesn't need that media.
                     foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
                         $DepName = $deptype.Name
-                        Write-Verbose -Message "Processing $DepName..............................."
+                        # Write-Verbose -Message "Processing $DepName..............................."
                         $DeploymentTypeArguments = @{
-                            # AddDetectionClause = Figure this out. See notes below. Also need to deal with group detection clauses.
+                            AddDetectionClause = ""
                             # AddRequirement = Figure this out. Maybe this is a future improvement. Accepts array of requirement objects.
                             AddLanguage = $depType.Language
                             ApplicationName = $NewAppName
@@ -191,9 +191,7 @@ function Build-MEMCMPackage {
                         # Removing null or empty values from the hashtable
                         $DepTypelist = New-Object System.Collections.ArrayList
                         foreach ($DTArgue in $DeploymentTypeArguments.Keys) {
-                            # Write-Verbose -Message "Processing $DTArgue"
                             if ([string]::IsNullOrWhiteSpace($DeploymentTypeArguments.$DTArgue)){
-                                # Write-Verbose -Message "$DTArgue value is empty/null marking for removal."
                                 $null = $DepTypelist.Add($DTArgue)
                             }
                         }
@@ -203,7 +201,6 @@ function Build-MEMCMPackage {
                         # Build an hashtable with all the detection methods and types
                         $count = 0
                         foreach ($detectionMethod in $depType.detectionMethods){
-                            Write-Verbose -Message "Processing $detectionMethod......................Count is $Count"
                             $DetectionClauseArguments = @{
                                 DirectoryName = $detectionMethod.DirectoryName
                                 Existence = $detectionMethod.Existence
@@ -222,48 +219,35 @@ function Build-MEMCMPackage {
                             # Removing null or empty values from the hashtable
                             $DetClauselist = New-Object System.Collections.ArrayList
                             foreach ($DetClause in $DetectionClauseArguments.Keys) {
-                                # Write-Verbose -Message "Processing $DetClause"
                                 if ([string]::IsNullOrWhiteSpace($DetectionClauseArguments.$DetClause)){
-                                    # Write-Verbose -Message "$DetClause value is empty/null marking for removal."
                                     $null = $DetClauselist.Add($DetClause)
                                 }
                             }
                             foreach ($item in $DetClauselist) {
                                 $DetectionClauseArguments.Remove($item)
                             }
-                            Write-output $DetectionClauseArguments
+                    # Do a check on the application name to see if the deployment type exists. If it doesn't do this section. If it does go to the next section.
                             # Check the type and run the proper command to create the DetectionClause variable
                             if ($count -eq 0){
                                 if ($detectionMethod.type -eq "RegistryKey") {
-                                    Write-Verbose -Message "Creating RegistryKey detectionclause"
                                     $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
-                                    $count++
                                 }
                                 elseif ($detectionMethod.type -eq "RegistryKeyValue" ) {
-                                    Write-Verbose -Message "Creating RegistryKeyValue detectionclause"
                                     $clause = New-CMDetectionClauseRegistryKeyValue @DetectionClauseArguments
-                                    $count++
                                 }
                                 elseif ($detectionMethod.type -eq "Directory") {
-                                    Write-Verbose -Message "Creating Directory detectionclause"
                                     $clause = New-CMDetectionClauseDirectory @DetectionClauseArguments
-                                    $count++
                                 }
                                 elseif ($detectionMethod.type -eq "File") {
-                                    Write-Verbose -Message "Creating File detectionclause"
                                     $clause = New-CMDetectionClauseFile @DetectionClauseArguments
-                                    $count++
                                 }
                                 elseif ($detectionMethod.type -eq "WindowsInstaller") {
-                                    Write-Verbose -Message "Creating Windows detectionclause"
                                     $clause = New-CMDetectionClauseWindowsInstaller @DetectionClauseArguments
-                                    $count++
                                 }
                                 else {
                                     Write-Verbose -Message "Not a known type of detection clause"
                                 }
-                                $DeploymentTypeArguments.add("AddDetectionClause",$clause)
-                                Write-Output $DeploymentTypeArguments
+                                $DeploymentTypeArguments.set_item("AddDetectionClause",$clause)
                                 # Create 1st Deployment Type to the application
                                 if ($depType.installerType -eq "Script") {
                                     Write-Verbose -Message "Adding Script Deployment Type."
@@ -275,50 +259,41 @@ function Build-MEMCMPackage {
                                 }
                             }
                             if ($count -ge 1){
+                                Write-Verbose -Message "Count is $count"
                                 if ($detectionMethod.type -eq "RegistryKey") {
-                                    Write-Verbose -Message "Creating RegistryKey detectionclause"
                                     $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
-                                    $count++
                                 }
                                 elseif ($detectionMethod.type -eq "RegistryKeyValue" ) {
-                                    Write-Verbose -Message "Creating RegistryKeyValue detectionclause"
                                     $clause = New-CMDetectionClauseRegistryKeyValue @DetectionClauseArguments
-                                    $count++
                                 }
                                 elseif ($detectionMethod.type -eq "Directory") {
-                                    Write-Verbose -Message "Creating Directory detectionclause"
                                     $clause = New-CMDetectionClauseDirectory @DetectionClauseArguments
-                                    $count++
                                 }
                                 elseif ($detectionMethod.type -eq "File") {
-                                    Write-Verbose -Message "Creating File detectionclause"
                                     $clause = New-CMDetectionClauseFile @DetectionClauseArguments
-                                    $count++
                                 }
                                 elseif ($detectionMethod.type -eq "WindowsInstaller") {
-                                    Write-Verbose -Message "Creating Windows detectionclause"
                                     $clause = New-CMDetectionClauseWindowsInstaller @DetectionClauseArguments
-                                    $count++
                                 }
                                 else {
                                     Write-Verbose -Message "Not a known type of detection clause"
                                 }
-                                $DeploymentTypeArguments.add("AddDetectionClause",$clause)
+                                $DeploymentTypeArguments.set_item("AddDetectionClause",$clause)
                                 Write-Output $DeploymentTypeArguments
-                                # Create 1st Deployment Type to the application
                                 if ($depType.installerType -eq "Script") {
-                                    Write-Verbose -Message "Setting Script Deployment Type."
+                                    Write-Verbose -Message "Setting Script Deployment Type - Deployment Type Name Exists"
                                     Set-CMScriptDeploymentType -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
                                 }
                                 elseif ($depType.installerType -eq "Msi") {
-                                    Write-Verbose -Message "Adding MSI Deployment Type."
+                                    Write-Verbose -Message "Adding MSI Deployment Type - Deployment Type Name Exists"
                                     Set-CMMsiDeploymentType @DeploymentTypeArguments
                                 }
                             }
+                            $count++
                         }
                     }
         # Need to build out the Detection clause using the New-CMDetectionClause functions. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmscriptdeploymenttype?view=sccm-ps
-        # The detection clause will need to be dumped into a variable for use in the Add-CM deployment type function call.
+        # Need to figure out what values are sensitive for the detection clause and make sure the work Jeff is doing will account for that.
                     $ContentDistributionArguments = @{
                         ApplicationName = $ApplicationName
                         DistributionPointGroupName = $DPGroupName
