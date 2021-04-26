@@ -1,6 +1,6 @@
 using System.Management.Automation;
 
-namespace umnautopackagerdotnet
+namespace UMNAutoPackger
 {
     [Cmdlet(VerbsCommon.New, "PackageDefinition")]
     [OutputType(typeof(AutoPackageDefinition))]

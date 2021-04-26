@@ -1,6 +1,6 @@
 using System;
 
-namespace umnautopackagerdotnet
+namespace UMNAutoPackger
 {
     public class PackagingTarget
     {

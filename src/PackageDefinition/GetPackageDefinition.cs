@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.Json;
 using System.Management.Automation;
 
-namespace umnautopackagerdotnet
+namespace UMNAutoPackger
 {
     [Cmdlet(VerbsCommon.Get, "PackageDefinition")]
     [OutputType(typeof(AutoPackageDefinition))]

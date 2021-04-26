@@ -2,7 +2,7 @@ using System.IO;
 using System.Text.Json;
 using System.Management.Automation;
 
-namespace umnautopackagerdotnet
+namespace UMNAutoPackger
 {
     [Cmdlet(VerbsCommon.Set, "packageDefinition")]
     [OutputType(typeof(FileInfo))]
@@ -31,7 +31,8 @@ namespace umnautopackagerdotnet
 
         protected override void ProcessRecord()
         {
-            JsonSerializerOptions Options = new JsonSerializerOptions {
+            JsonSerializerOptions Options = new JsonSerializerOptions
+            {
                 WriteIndented = true,
                 IgnoreNullValues = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase

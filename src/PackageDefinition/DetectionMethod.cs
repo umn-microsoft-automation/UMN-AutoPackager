@@ -1,4 +1,4 @@
-namespace umnautopackagerdotnet
+namespace UMNAutoPackger
 {
     public class DetectionMethod
     {
