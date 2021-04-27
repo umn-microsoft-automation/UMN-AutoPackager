@@ -71,41 +71,33 @@ function Build-MEMCMPackage {
                     # Building out the Application Name based on the pattern if used otherwise using the specific name in the field
                     $AppName = $PkgObject.packagingTargets.Name
                     if ($AppName -match '}-') {
-                        # Write-Verbose -Message "$AppName is a pattern."
                         $BuildName = $AppName -split '-' -replace '[{}]', ''
                         foreach ($item in $BuildName) {
-                            # Write-Verbose -Message "$item is being processed"
                             if ($Keys -contains $item) {
-                                # Write-Verbose -Message "Found match for $item"
                                 $n = $PkgObject.$item
                                 $NewAppName += "$n "
-                                # Write-Verbose -Message "Setting name to $NewAppName"
                             }
                         }
                         $NewAppName = $NewAppName -replace (' ', "-")
                         $NewAppName = $NewAppName -replace ".$"
                     }
                     else {
-                        # Write-verbose -Message "No pattern using value of packagingTargets.Name"
                         $NewAppName = $AppName
                     }
+                    # Checking if a baseapp value exists for the naming convention
                     $baseAppName = $ConfigMgrObject.baseAppName
                     if (-not [string]::IsNullOrEmpty($baseAppName)) {
-                        # Write-Verbose -Message "Baseapp name found using: $baseAppName"
                         $NewAppName = $NewAppName.Insert(0, "$baseAppName-")
                     }
                     Write-Verbose -Message "Application name is $NewAppName"
+                    # Building the localized application name
                     $LocalAppName = $PkgObject.packagingTargets.localizedApplicationName
                     if ($LocalAppName -match '} ') {
-                        # Write-Verbose -Message "$LocalAppName is a pattern."
                         $LocalBuildName = $LocalAppName -split ' ' -replace '[{}]', ''
                         foreach ($localitem in $LocalBuildName) {
-                            # Write-Verbose -Message "$localitem is being processed"
                             if ($Keys -contains $localitem) {
-                                # Write-Verbose -Message "Found match for $localitem"
                                 $n = $PkgObject.$localitem
                                 $NewLocalAppName += "$n "
-                                # Write-Verbose -Message "Setting name to $NewLocalAppName"
                             }
                         }
                     }
@@ -114,6 +106,7 @@ function Build-MEMCMPackage {
                         $NewLocalAppName = $LocalAppName
                     }
                     Write-Verbose -Message "Local Application name is $NewLocalAppName"
+                    # Building hashtable with all the values to use in the New-CMApplication function
                     $ApplicationArguments = @{
                         Name                 = $NewAppName
                         Description          = $PkgObject.Description
@@ -135,31 +128,18 @@ function Build-MEMCMPackage {
                     # Removing null or empty values from the hashtable
                     $list = New-Object System.Collections.ArrayList
                     foreach ($appA in $ApplicationArguments.Keys) {
-                        # Write-Verbose -Message "Processing $appA"
                         if ([string]::IsNullOrWhiteSpace($ApplicationArguments.$appA)) {
-                            # Write-Verbose -Message "$appA value is empty/null marking for removal."
                             $null = $list.Add($appA)
                         }
                     }
                     foreach ($item in $list) {
                         $ApplicationArguments.Remove($item)
                     }
-                    # Building ConfigMgr application
+                    # Creating a new ConfigMgr application
                     New-CMApplication @ApplicationArguments
-                    # InstallationBehaviorType must be one of 3 values (Not sure if we can enforce this maybe a try catch). InstallForSystem, InstallForSystemIfResourceIsDeviceOtherwiseInstallForUser,InstallForUser
-                    # UserInteractionMode must be one of 4 values. Normal, Minimized, Maximized, Hidden
-                    # AddLanguage specifices an array of languages. Not sure we want to deal with that right now. Accepts LCID language codes. https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-lcid/a9eac961-e77d-41a6-90a5-ce1a8b0cdb9c
-                    # LogonRequirementType must be one of 3 values. OnlyWhenNoUserLoggedOn, OnlyWhenUserLoggedOn, WhetherOrNotUserLoggedOn
-                    # SlowNetworkDeploymentMode must be one of 2 values. DoNothing, Download
-                    # RebootBehavior must be one of 4 BaseOnExitCode, NoAction, ProgramReboot, ForceReboot
-                    # ScriptLanguage is required for a Script Deployment Type. Accepts Powershell, VBScript,Javascript
-                    # ForceScriptDetection32Bit Needed?
-                    # RepairCommand Needed?
-                    # ScriptFile detect for deployment. Future improvement.
-                    # UninntallContentLocation future improvement. Can be different then the contentlocation. Nice for solidworks and other large install media that doesn't need that media.
+                    # Building hashtable with all values to us in the DeploymentType creation functions
                     foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
                         $DepName = $deptype.Name
-                        # Write-Verbose -Message "Processing $DepName..............................."
                         $DeploymentTypeArguments = @{
                             AddDetectionClause        = ""
                             AddLanguage               = $depType.Language
@@ -176,7 +156,6 @@ function Build-MEMCMPackage {
                             InstallCommand            = $deptype.installCMD
                             LogonRequirementType      = $depType.logonRequired
                             MaximumRuntimeMins        = $depType.maxRuntime
-                            # ProductCode = Figure this out. It states it will over write any other detection.
                             RebootBehavior            = $depType.rebootBehavior
                             ScriptLanguage            = $depType.scriptLanguage
                             ScriptText                = $deptype.ScriptText
@@ -194,8 +173,7 @@ function Build-MEMCMPackage {
                         foreach ($item in $DepTypelist) {
                             $DeploymentTypeArguments.Remove($item)
                         }
-                        # Build an hashtable with all the detection methods and types
-                        $count = 0
+                        # Building hashtable with all the values to use with New or Set-CMDetectionClause functions
                         foreach ($detectionMethod in $depType.detectionMethods) {
                             $DetectionClauseArguments = @{
                                 DirectoryName      = $detectionMethod.DirectoryName
@@ -222,9 +200,9 @@ function Build-MEMCMPackage {
                             foreach ($item in $DetClauselist) {
                                 $DetectionClauseArguments.Remove($item)
                             }
-                            # Do a check on the application name to see if the deployment type exists. If it doesn't do this section. If it does go to the next section.
-                            # Check the type and run the proper command to create the DetectionClause variable
-                            if ($count -eq 0) {
+                            # Check the application deployment types, run the proper command to create the DetectionClause variable, add to the hashtable, and create the deployment type
+                            if ($null -eq $(Get-CMDeploymentType -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -ApplicationName $DeploymentTypeArguments.ApplicationName)) {
+                                Write-Verbose -Message "Deployment Type not found in $($DeploymentTypeArguments.ApplicationName)"
                                 if ($detectionMethod.type -eq "RegistryKey") {
                                     $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
                                 }
@@ -244,7 +222,7 @@ function Build-MEMCMPackage {
                                     Write-Verbose -Message "Not a known type of detection clause"
                                 }
                                 $DeploymentTypeArguments.set_item("AddDetectionClause", $clause)
-                                # Create 1st Deployment Type to the application
+                                # Creating a new deployment type to the application
                                 if ($depType.installerType -eq "Script") {
                                     Write-Verbose -Message "Adding Script Deployment Type."
                                     Add-CMScriptDeploymentType @DeploymentTypeArguments
@@ -254,8 +232,8 @@ function Build-MEMCMPackage {
                                     Add-CMMsiDeploymentType @DeploymentTypeArguments
                                 }
                             }
-                            if ($count -ge 1) {
-                                Write-Verbose -Message "Count is $count"
+                            else{
+                                Write-Verbose -Message "Deployment Type found in $($DeploymentTypeArguments.ApplicationName)"
                                 if ($detectionMethod.type -eq "RegistryKey") {
                                     $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
                                 }
@@ -275,7 +253,7 @@ function Build-MEMCMPackage {
                                     Write-Verbose -Message "Not a known type of detection clause"
                                 }
                                 $DeploymentTypeArguments.set_item("AddDetectionClause", $clause)
-                                Write-Output $DeploymentTypeArguments
+                                # Add additional detection clauses to an existing deployment type
                                 if ($depType.installerType -eq "Script") {
                                     Write-Verbose -Message "Setting Script Deployment Type - Deployment Type Name Exists"
                                     Set-CMScriptDeploymentType -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
@@ -285,10 +263,9 @@ function Build-MEMCMPackage {
                                     Set-CMMsiDeploymentType @DeploymentTypeArguments
                                 }
                             }
-                            $count++
                         }
                     }
-                    # The account that runs this function needs to be able to read the content location.
+                    # Application content is distributed
                     if ($PkgObject.DistributionPointName) {
                         Write-Verbose -Message "Distributing content to a set of DP names"
                         Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointName $PkgObject.DistributionPointName
