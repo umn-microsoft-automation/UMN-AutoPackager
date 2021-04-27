@@ -67,7 +67,6 @@ function Build-MEMCMPackage {
             Set-Location -Path "$SiteCode`:\"
             foreach ($PkgObject in $PackageDefinition) {
                 if ($PkgObject.PackagingTargets.Type -eq "MEMCM-Application") {
-                    # Build out the varibles needed for each one below using the packageconfig or globalconfig. Add any needed values to the config.
                     $Keys = $PkgObject | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
                     # Building out the Application Name based on the pattern if used otherwise using the specific name in the field
                     $AppName = $PkgObject.packagingTargets.Name
@@ -121,7 +120,6 @@ function Build-MEMCMPackage {
                         Publisher            = $PkgObject.Publisher
                         SoftwareVersion      = $PkgObject.currentVersion
                         ReleaseDate          = $PkgObject.packagingTargets.datePublished
-                        # Add this to the PackageConfig
                         AddOwner             = $PkgObject.owner
                         AutoInstall          = $PkgObject.packagingTargets.allowTSUsage
                         IconLocationFile     = $PkgObject.packagingTargets.IconLocationFile
@@ -131,7 +129,6 @@ function Build-MEMCMPackage {
                         LocalizedDescription = $PkgObject.packagingTargets.localizedDescription
                         LocalizedName        = $NewLocalAppName
                         PrivacyURL           = $PkgObject.packagingTargets.privacyLink
-                        # Add this to the pkgconfig
                         SupportContact       = $PkgObject.supportContact
                         UserDocumentation    = $PkgObject.packagingTargets.userDocumentationLink
                     }
@@ -148,7 +145,6 @@ function Build-MEMCMPackage {
                         $ApplicationArguments.Remove($item)
                     }
                     # Building ConfigMgr application
-                    # Remove Whatifs once ready to merge with master
                     New-CMApplication @ApplicationArguments
                     # InstallationBehaviorType must be one of 3 values (Not sure if we can enforce this maybe a try catch). InstallForSystem, InstallForSystemIfResourceIsDeviceOtherwiseInstallForUser,InstallForUser
                     # UserInteractionMode must be one of 4 values. Normal, Minimized, Maximized, Hidden
@@ -166,7 +162,6 @@ function Build-MEMCMPackage {
                         # Write-Verbose -Message "Processing $DepName..............................."
                         $DeploymentTypeArguments = @{
                             AddDetectionClause        = ""
-                            # AddRequirement = Figure this out. Maybe this is a future improvement. Accepts array of requirement objects.
                             AddLanguage               = $depType.Language
                             ApplicationName           = $NewAppName
                             CacheContent              = $deptype.cacheContent
@@ -293,27 +288,14 @@ function Build-MEMCMPackage {
                             $count++
                         }
                     }
-                    # Need to build out the Detection clause using the New-CMDetectionClause functions. https://docs.microsoft.com/en-us/powershell/module/configurationmanager/add-cmscriptdeploymenttype?view=sccm-ps
-                    # Need to figure out what values are sensitive for the detection clause and make sure the work Jeff is doing will account for that.
-                    $ContentDistributionArguments = @{
-                        ApplicationName            = $NewAppName
-                        DistributionPointGroupName = $DeploymentTypeArguments.DistributionPointGroupName
-                        DistributionPointName      = $DeploymentTypeArguments.DistributionPointName
-                    }
-                    write-output $ContentDistributionArguments
-                    # Need to see what happens with an array in the DistributionPointName or DistributionPointGroupName
-                    if ([string]::IsNullOrWhiteSpace($ContentDistributionArguments.DistributionPointGroupName)) {
+                    # The account that runs this function needs to be able to read the content location.
+                    if ($PkgObject.DistributionPointName) {
                         Write-Verbose -Message "Distributing content to a set of DP names"
-                        $ContentDistributionArguments.Remove("DistributionPointGroupName")
-                        Start-CMContentDistribution @ContentDistributionArguments
+                        Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointName $PkgObject.DistributionPointName
                     }
-                    elseif ([string]::IsNullOrWhiteSpace($ContentDistributionArguments.DistributionPointName)) {
+                    if ($PkgObject.DistributionPointGroupName) {
                         Write-Verbose -Message "Distributing content to a set of DP groups"
-                        $ContentDistributionArguments.Remove("DistributionPointName")
-                        Start-CMContentDistribution @ContentDistributionArguments
-                    }
-                    else {
-                        Write-Verbose -Message "No Distribution Point Group Name or Name was provided."
+                        Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointGroupName $pkgObject.DistributionPointGroupName
                     }
                 }
             }
