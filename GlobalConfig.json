@@ -1,0 +1,28 @@
+{
+  "CompanyName": "MyCompany",
+  "LastModified": "2/1/2021 11:22:58 AM",
+  "ConfigMgr": [
+    {
+      "Site": "site.something.com",
+      "SiteCode": "COM",
+      "DownloadLocationPath": "C:\\Temp",
+      "ApplicationContentPath": "\\\\AppStorage.somewhere\\"
+    },
+    {
+      "Site": "something.something.something",
+      "SiteCode": "DOD",
+      "DownloadLocationPath": "\\\\path.somewhere",
+      "ApplicationContentPath": "\\\\App.somewhere.content"
+    }
+  ],
+  "RecipeLocations": [
+    {
+      "locationType": "directory",
+      "locationUri": "C:\\Temp"
+    },
+    {
+      "locationType": "directory",
+      "locationUri": "\\\\files.somewhere\\"
+    }
+  ]
+}
