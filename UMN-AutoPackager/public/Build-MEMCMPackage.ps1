@@ -33,6 +33,24 @@ function Get-UMNGlobalConfig {
 # Build-MEMCMPackage -GlobalConfig globalconfigdefinitions -PackageDefinition arrayofpackagedefinitions
 # Foreach Site creates an application based on the values in the package defintion array.
 function Build-MEMCMPackage {
+    <#
+    .SYNOPSIS
+    Create an application in Configuration Manager based on the properties of the UMNAutopackager json files.
+    .DESCRIPTION
+    This command creates an application based on the values of the GlobalConfig and PackageConfig json values. It leverages various powershell commands provided with ConfigMgr.
+    .PARAMETER GlobalConfig
+    Input the global configuration json file using the Get-GlobalConfig command
+    .PARAMETER PackageDefinition
+    Input the package definition json file using the Get-GlobalConfig command
+    .PARAMETER Credential
+    Input the credentials object or the user name which will prompt for credentials. If not called will attempt to use the credentials of the account that is running the script.
+    .EXAMPLE
+    Build-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\UMNAutopackager\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\UMNAutopackager\PackageConfig.json) -Credential MyUserName
+    Runs the function prompting for the credentials of MyUserName.
+    .EXAMPLE
+    Build-MEMCMPackage -GlobalConfig $globaljson -PackageDefinition $pkgjson -Credential $creds
+    Runs the function using the credentials stored in the $creds variable.
+    #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true,
@@ -47,6 +65,12 @@ function Build-MEMCMPackage {
         $Credential = [System.Management.Automation.PSCredential]::Empty
     )
     begin {
+        Write-Information -MessageData "Command = $($myinvocation.mycommand)" -Tags Meta
+        Write-Information -MessageData "PSVersion = $($PSVersionTable.PSVersion)" -Tags Meta
+        Write-Information -MessageData "User = $env:userdomain\$env:username" -tags Meta
+        Write-Information -MessageData "Computer = $env:computername" -tags Meta
+        Write-Information -MessageData "PSHost = $($host.name)" -Tags Meta
+        Write-Information -MessageData "Date = $(Get-Date)" -tags Meta
         Write-Verbose -Message "Starting $($myinvocation.mycommand)"
         Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
     }
@@ -66,6 +90,7 @@ function Build-MEMCMPackage {
             Push-Location
             Set-Location -Path "$SiteCode`:\"
             foreach ($PkgObject in $PackageDefinition) {
+                Write-Verbose -Message "Processing the package definition $($pkgObject.publisher) $($pkgObject.productname)"
                 if ($PkgObject.PackagingTargets.Type -eq "MEMCM-Application") {
                     $Keys = $PkgObject | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
                     # Building out the Application Name based on the pattern if used otherwise using the specific name in the field
@@ -116,7 +141,6 @@ function Build-MEMCMPackage {
                         AddOwner             = $PkgObject.owner
                         AutoInstall          = $PkgObject.packagingTargets.allowTSUsage
                         IconLocationFile     = $PkgObject.packagingTargets.IconLocationFile
-                        # Need to fix keywords
                         Keywords             = $PkgObject.packagingTargets.Keywords
                         Linktext             = $PkgObject.packagingTargets.userDocumentationText
                         LocalizedDescription = $PkgObject.packagingTargets.localizedDescription
@@ -135,7 +159,8 @@ function Build-MEMCMPackage {
                     foreach ($item in $list) {
                         $ApplicationArguments.Remove($item)
                     }
-                    # Creating a new ConfigMgr application
+                    Write-Verbose -Message "Creating a new ConfigMgr application $NewAppName"
+            # add try catch here
                     New-CMApplication @ApplicationArguments
                     # Building hashtable with all values to us in the DeploymentType creation functions
                     foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
@@ -163,6 +188,7 @@ function Build-MEMCMPackage {
                             UninstallProgram          = $depType.uninstallCMD
                             UserInteractionmode       = $deptype.userInteraction
                         }
+                        Write-Verbose -Message "Processing the DeploymentType: $($DeploymentTypeArguments.DeploymentTypeName)"
                         # Removing null or empty values from the hashtable
                         $DepTypelist = New-Object System.Collections.ArrayList
                         foreach ($DTArgue in $DeploymentTypeArguments.Keys) {
@@ -175,6 +201,7 @@ function Build-MEMCMPackage {
                         }
                         # Building hashtable with all the values to use with New or Set-CMDetectionClause functions
                         foreach ($detectionMethod in $depType.detectionMethods) {
+                            Write-Verbose -Message "Processing the detection method"
                             $DetectionClauseArguments = @{
                                 DirectoryName      = $detectionMethod.DirectoryName
                                 Existence          = $detectionMethod.Existence
@@ -223,6 +250,7 @@ function Build-MEMCMPackage {
                                 }
                                 $DeploymentTypeArguments.set_item("AddDetectionClause", $clause)
                                 # Creating a new deployment type to the application
+                    # Add try catch for these
                                 if ($depType.installerType -eq "Script") {
                                     Write-Verbose -Message "Adding Script Deployment Type."
                                     Add-CMScriptDeploymentType @DeploymentTypeArguments
@@ -254,6 +282,7 @@ function Build-MEMCMPackage {
                                 }
                                 $DeploymentTypeArguments.set_item("AddDetectionClause", $clause)
                                 # Add additional detection clauses to an existing deployment type
+                    # Add try catch for these
                                 if ($depType.installerType -eq "Script") {
                                     Write-Verbose -Message "Setting Script Deployment Type - Deployment Type Name Exists"
                                     Set-CMScriptDeploymentType -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
@@ -266,6 +295,7 @@ function Build-MEMCMPackage {
                         }
                     }
                     # Application content is distributed
+            # Add try catch for these
                     if ($PkgObject.DistributionPointName) {
                         Write-Verbose -Message "Distributing content to a set of DP names"
                         Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointName $PkgObject.DistributionPointName
@@ -284,4 +314,4 @@ function Build-MEMCMPackage {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
     }
 }
-Build-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\PackageConfig.json) -Credential oitthoen008 -verbose
+Build-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\PackageConfig.json) -Credential oitthoen008 -verbose -InformationAction Continue -InformationVariable test
