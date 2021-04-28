@@ -37,7 +37,7 @@ function Build-MEMCMPackage {
     .SYNOPSIS
     Create an application in Configuration Manager based on the properties of the UMNAutopackager json files.
     .DESCRIPTION
-    This command creates an application based on the values of the GlobalConfig and PackageConfig json values. It leverages various powershell commands provided with ConfigMgr.
+    This command creates an application for each site based on the values of the GlobalConfig and PackageConfig json values. It leverages various powershell commands provided with ConfigMgr.
     .PARAMETER GlobalConfig
     Input the global configuration json file using the Get-GlobalConfig command
     .PARAMETER PackageDefinition
@@ -77,7 +77,6 @@ function Build-MEMCMPackage {
     process {
         foreach ($ConfigMgrObject in ($GlobalConfig.ConfigMgr)) {
             Write-Verbose -Message "Processing $ConfigMgrObject Site..."
-            # Credit this for using credentials https://duffney.io/addcredentialstopowershellfunctions/
             $SiteCode = $ConfigMgrObject.SiteCode
             try {
                 if (-not (Test-Path -Path $SiteCode)) {
@@ -86,6 +85,7 @@ function Build-MEMCMPackage {
             }
             catch {
                 Write-Error $Error[0]
+                Write-Warning -Message "Error: $($_.Exception.Message)"
             }
             Push-Location
             Set-Location -Path "$SiteCode`:\"
@@ -148,6 +148,7 @@ function Build-MEMCMPackage {
                         PrivacyURL           = $PkgObject.packagingTargets.privacyLink
                         SupportContact       = $PkgObject.supportContact
                         UserDocumentation    = $PkgObject.packagingTargets.userDocumentationLink
+                        ErrorAction          = "Stop"
                     }
                     # Removing null or empty values from the hashtable
                     $list = New-Object System.Collections.ArrayList
@@ -159,9 +160,14 @@ function Build-MEMCMPackage {
                     foreach ($item in $list) {
                         $ApplicationArguments.Remove($item)
                     }
-                    Write-Verbose -Message "Creating a new ConfigMgr application $NewAppName"
-            # add try catch here
-                    New-CMApplication @ApplicationArguments
+                    try {
+                        Write-Verbose -Message "Creating a new ConfigMgr application: $NewAppName"
+                        New-CMApplication @ApplicationArguments
+                    }
+                    catch {
+                        Write-Error $Error[0]
+                        Write-Warning -Message "Error: $($_.Exception.Message)"
+                    }
                     # Building hashtable with all values to us in the DeploymentType creation functions
                     foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
                         $DepName = $deptype.Name
@@ -187,6 +193,7 @@ function Build-MEMCMPackage {
                             SlowNetworkDeploymentMode = $depType.onSlowNetwork
                             UninstallProgram          = $depType.uninstallCMD
                             UserInteractionmode       = $deptype.userInteraction
+                            ErrorAction               = "Stop"
                         }
                         Write-Verbose -Message "Processing the DeploymentType: $($DeploymentTypeArguments.DeploymentTypeName)"
                         # Removing null or empty values from the hashtable
@@ -250,17 +257,28 @@ function Build-MEMCMPackage {
                                 }
                                 $DeploymentTypeArguments.set_item("AddDetectionClause", $clause)
                                 # Creating a new deployment type to the application
-                    # Add try catch for these
                                 if ($depType.installerType -eq "Script") {
                                     Write-Verbose -Message "Adding Script Deployment Type."
-                                    Add-CMScriptDeploymentType @DeploymentTypeArguments
+                                    try {
+                                        Add-CMScriptDeploymentType @DeploymentTypeArguments
+                                    }
+                                    catch {
+                                        Write-Error $Error[0]
+                                        Write-Warning -Message "Error: $($_.Exception.Message)"
+                                    }
                                 }
                                 elseif ($depType.installerType -eq "Msi") {
                                     Write-Verbose -Message "Adding MSI Deployment Type."
-                                    Add-CMMsiDeploymentType @DeploymentTypeArguments
+                                    try {
+                                        Add-CMMsiDeploymentType @DeploymentTypeArguments
+                                    }
+                                    catch {
+                                        Write-Error $Error[0]
+                                        Write-Warning -Message "Error: $($_.Exception.Message)"
+                                    }
                                 }
                             }
-                            else{
+                            else {
                                 Write-Verbose -Message "Deployment Type found in $($DeploymentTypeArguments.ApplicationName)"
                                 if ($detectionMethod.type -eq "RegistryKey") {
                                     $clause = New-CMDetectionClauseRegistryKey @DetectionClauseArguments
@@ -282,27 +300,50 @@ function Build-MEMCMPackage {
                                 }
                                 $DeploymentTypeArguments.set_item("AddDetectionClause", $clause)
                                 # Add additional detection clauses to an existing deployment type
-                    # Add try catch for these
                                 if ($depType.installerType -eq "Script") {
                                     Write-Verbose -Message "Setting Script Deployment Type - Deployment Type Name Exists"
-                                    Set-CMScriptDeploymentType -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
+                                    try {
+                                        Set-CMScriptDeploymentType @DeploymentTypeArguments
+                                    }
+                                    catch {
+                                        Write-Error $Error[0]
+                                        Write-Warning -Message "Error: $($_.Exception.Message)"
+                                    }
+                                    #Set-CMScriptDeploymentType -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
                                 }
                                 elseif ($depType.installerType -eq "Msi") {
                                     Write-Verbose -Message "Adding MSI Deployment Type - Deployment Type Name Exists"
-                                    Set-CMMsiDeploymentType @DeploymentTypeArguments
+                                    try {
+                                        Set-CMMsiDeploymentType @DeploymentTypeArguments
+                                    }
+                                    catch {
+                                        Write-Error $Error[0]
+                                        Write-Warning -Message "Error: $($_.Exception.Message)"
+                                    }
                                 }
                             }
                         }
                     }
-                    # Application content is distributed
-            # Add try catch for these
+                    # Distributing the Application content
                     if ($PkgObject.DistributionPointName) {
                         Write-Verbose -Message "Distributing content to a set of DP names"
-                        Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointName $PkgObject.DistributionPointName
+                        try {
+                            Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointName $PkgObject.DistributionPointName
+                        }
+                        catch {
+                            Write-Error $Error[0]
+                            Write-Warning -Message "Error: $($_.Exception.Message)"
+                        }
                     }
                     if ($PkgObject.DistributionPointGroupName) {
                         Write-Verbose -Message "Distributing content to a set of DP groups"
-                        Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointGroupName $pkgObject.DistributionPointGroupName
+                        try {
+                            Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointGroupName $pkgObject.DistributionPointGroupName
+                        }
+                        catch {
+                            Write-Error $Error[0]
+                            Write-Warning -Message "Error: $($_.Exception.Message)"
+                        }
                     }
                 }
             }
