@@ -1,5 +1,5 @@
 function Get-NewPackageFile {
-<#
+    <#
     .SYNOPSIS
     Cmdlet that saves a file from a file path, UNC, or URI and saves it to the specified location.
     .DESCRIPTION
@@ -60,10 +60,12 @@ function Get-NewPackageFile {
                     $FullSource = $Source
                     $SourceFile = Split-Path -Path $Source -Leaf
 
-                } else {
+                }
+                else {
                     throw "Source is a directory or file does not exist: $Source"
                 }
-            } elseif ($SourceScheme -match "http") {
+            }
+            elseif ($SourceScheme -match "http") {
                 #   Do HTTP(S) stuff
                 Write-Verbose -Message "Source scheme is http(s)"
                 # Get the redirected URL of the Source so the file can be downloaded
@@ -72,8 +74,9 @@ function Get-NewPackageFile {
                 $URIFile = Split-Path $FullSource -Leaf
                 $UnescapedFile = [System.Uri]::UnescapeDataString($URIFile)
                 # Replace any space charaters with underscores
-                $SourceFile = $UnescapedFile.Replace("%20","_").Replace(" ","_")
-            } else {
+                $SourceFile = $UnescapedFile.Replace("%20", "_").Replace(" ", "_")
+            }
+            else {
                 throw "Invalid Source path type: $SourceScheme. Must be type: file, http, or https."
             }
             Write-Verbose -Message "Source filename: $SourceFile"
@@ -86,20 +89,23 @@ function Get-NewPackageFile {
                 if ($null -eq [IO.Path]::GetExtension($Destination) -or "" -eq [IO.Path]::GetExtension($Destination)) {
                     # Filename not present in Destination, use filename from Source
                     $DestinationPath = $Destination
-                    if ($DestinationPath.Substring($DestinationPath.Length-1) -eq "\") {
+                    if ($DestinationPath.Substring($DestinationPath.Length - 1) -eq "\") {
                         # Last character of Source input is a backslash, no need to add it to the full destination
                         $FullDestination = "$Destination" + "$SourceFile"
-                    } else {
+                    }
+                    else {
                         # Last character of Source input is not a backslash, add one to the full destination
                         $FullDestination = "$Destination" + "\" + "$SourceFile"
                     }
-                } else {
+                }
+                else {
                     # Filename present in Destination
                     # Put the Destination path into svariable for possible use later
                     $DestinationPath = Split-Path -Path $Destination
                     $FullDestination = $Destination
                 }
-            } else {
+            }
+            else {
                 throw "Invalid Destination path type: $DestinationScheme; must be type: file."
             }
 
@@ -131,7 +137,8 @@ function Get-NewPackageFile {
                 Get-ChildItem -Path $FullDestination
             }
 
-        } catch {
+        }
+        catch {
             throw $_
         }
     }

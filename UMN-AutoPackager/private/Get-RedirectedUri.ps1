@@ -41,8 +41,8 @@ function Get-RedirectedUri {
                     throw $_
                 }
             }
-		} while ($retry)
+        } while ($retry)
 		
-		$redirectUri
+        $redirectUri
     }
 }
