@@ -618,3 +618,6 @@ $RECYCLE.BIN/
 *.tlog
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,visualstudiocode,csharp,powershell,windows,macos,linux
+
+# Output Folder (Used when building module)
+[Oo]utput/
