@@ -1,11 +1,34 @@
-# Create standard MEMCM collections based off global configuration
-# Create-MEMCMCollections -Path .\GlobalConfig.json -Name PackageConfig
-# Creates a collection(s) based on the Global Config settings. Need the Limiting Collection to base this on.
-# Where does the naming convention come from? This should be unique so we can use it for the deploy function. Maybe it adds the collection name(s) to the package config?
-# Let's start simple with a single collection based on some information from the PacakgeConfig.
-# Maybe we use a switch to define the various ways to deploy. Single, Three Collection Rollout, Phased Deployment Collection. Or maybe it makes a query
-# Options to change the standard settings for collection evaluation or to make it incremental.
-# Keep in mind user deployment versus device?
+function Get-UMNGlobalConfig {
+    <#
+    .SYNOPSIS
+        Gets all the global configurations and value for each from a JSON file used by the auto packager.
+    .DESCRIPTION
+        This command retrieves from a json file the values of various global configurations used as part of the AutoPackager. It requires a the full path and name of the JSON file.
+    .EXAMPLE
+        Get-UMNGlobalConfig -Path .\config.json
+        Gets the values of the config.json file
+    .PARAMETER Path
+        The full path and file name of the JSON file to get the config from
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$True, HelpMessage = "The full path and file name of the JSON file to get the config from")]
+        [ValidateNotNullOrEmpty()]
+        [string]$Path
+    )
+    begin {
+        Write-Verbose -Message "Starting $($myinvocation.mycommand)"
+    }
+    process {
+        $json = Get-Content -Path $Path -Raw
+        $config = ConvertFrom-Json -InputObject $json
+        Write-Output -InputObject $config
+        }
+    end {
+        Write-Verbose -Message "Ending $($myinvocation.mycommand)"
+    }
+}#Get-UMNGlobalConfig
+# Creates a collection(s) based on the Config settings. Need the Limiting Collection to base this on.
 function New-MEMCMCollections {
     [CmdletBinding()]
     param (
@@ -44,7 +67,7 @@ function New-MEMCMCollections {
                 foreach ($collection in $PkgObject.CollectionTargets) {
                     if ($collection.type -eq "MEMCM-Collection") {
                         Write-Verbose -Message "Building collection $($collection.name) for ConfigMgr"
-                        # build in a check to see if the collection name exists
+                        # build in a check to see if the collection name exists if it does check the settings match? Or just skip.
                         $CollectionArguments = @{
                             Name = $collection.Name
                             LimitingCollectionName = $collection.LimitingCollectionName
@@ -52,14 +75,46 @@ function New-MEMCMCollections {
                             RefreshType = $collection.RefreshType
                             RefreshSchedule = ""
                         }
-                        # Check if RefreshType is Periodic. If it is build a schedule based on the values in the json.
+                        # RefreshType is Periodic or Both. Build a schedule and create the collection.
                         if ($CollectionArguments.RefreshType -eq "Periodic" -or $CollectionArguments.RefreshType -eq "Both") {
                             Write-Verbose -Message "Collection is using a Periodic schedule"
                             $startdate = Get-Date -month $collection.month -day $collection.day -year $collection.year -hour $collection.hour -minute $collection.minute
-                            $sched = New-CMSchedule -Start $startdate -DurationInterval $collection.DurecationInverval -RecurInterval $collection.RecurInterval
-                            $CollectionArguments.set_item("RefreshSchedule",$sched)
-                            Write-Output $CollectionArguments
+                            if ($collection.RecurInterval -eq "Days" -or $collection.RecurInterval -eq "Hours" -or $collection.RecurInterval -eq "Minutes") {
+                                Write-Verbose -Message "Periodic is using days, hours, or minutes"
+                                $sched = New-CMSchedule -Start $startdate -RecurInterval $collection.RecurInterval -Recurcount $collection.RecurCount
+                                $CollectionArguments.set_item("RefreshSchedule",$sched)
+                            }
+                            elseif ($collection.RecurInterval -eq "Month") {
+                                Write-Verbose -Message "Periodic using month"
+                                if ($collection.LastDayofMonth -eq $true) {
+                                    Write-Verbose -Message "Periodic is using LastDayOfMonth"
+                                    $sched = New-CMSchedule -Start $startdate -LastDayOfMonth
+                                    $CollectionArguments.set_item("RefreshSchedule",$sched)
+                                }
+                            # Look at adding OffsetDay. Might be able to just add a check for the value.
+                                elseif ($collection.DayOfMonth) {
+                                    Write-Verbose -Message "Periodic is using Day of Month"
+                                    $sched = New-CMSchedule -Start $startdate -DayOfMonth $collection.DayOfMonth -RecurCount $collection.RecurCount
+                                    $CollectionArguments.set_item("RefreshSchedule",$sched)
+                                }
+                            }
+                            elseif ($collection.RecurInterval -eq "Week") {
+                                Write-Verbose -Message "Periodic is using week"
+                                $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -RecurCount $collection.RecurCount
+                                $CollectionArguments.set_item("RefreshSchedule",$sched)
+                            }
+                            # Create the periodic collection
+                            Write-Verbose -Message "Creating the collection: $($CollectionArguments.Name)"
+                            try {
+                                New-CMDeviceCollection @CollectionArguments
+                            }
+                            catch {
+                                Write-Error $Error[0]
+                                Write-Warning -Message "Error: $($_.Exception.Message)"
+                            }
                         }
+                        # Build the collection if none.
+                        # Build the collection if Continuous.
                     }
                 }#foreach $CollectionTargets
             }#foreach $PackageDefinition
@@ -70,4 +125,5 @@ function New-MEMCMCollections {
     end {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
     }
-}
+}#New-MEMCMCollections
+New-MEMCMCollections -GlobalConfig (Get-UMNGlobalConfig C:\users\thoen008\Desktop\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig C:\users\thoen008\Desktop\PackageConfig.json) -Credential oitthoen008 -Verbose
