@@ -4,9 +4,9 @@ using System.Management.Automation;
 
 namespace UMNAutoPackger
 {
-    [Cmdlet(VerbsCommon.Set, "packageDefinition")]
+    [Cmdlet(VerbsCommon.Set, "AutoPackagerGlobalConfig")]
     [OutputType(typeof(FileInfo))]
-    public class SetpackageDefinition : PSCmdlet
+    public class SetAutoPackagerGlobalConfig : PSCmdlet
     {
         [Parameter(
             Mandatory = true,
@@ -22,7 +22,7 @@ namespace UMNAutoPackger
             ValueFromPipeline = true,
             ValueFromPipelineByPropertyName = true
         )]
-        public AutoPackageDefinition packageDefinition;
+        public AutoPackagerConfiguration packagerConfiguration;
 
         protected override void BeginProcessing()
         {
@@ -37,7 +37,7 @@ namespace UMNAutoPackger
                 IgnoreNullValues = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
-            string JsonContent = JsonSerializer.Serialize<AutoPackageDefinition>(packageDefinition, Options);
+            string JsonContent = JsonSerializer.Serialize<AutoPackagerConfiguration>(packagerConfiguration, Options);
             File.WriteAllText(filePath, JsonContent);
             FileInfo JsonFile = new FileInfo(filePath);
             WriteVerbose(JsonContent);
