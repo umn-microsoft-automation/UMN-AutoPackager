@@ -6,7 +6,7 @@
     "versionSource": "Filename",
     "sourcePath": "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US",
     "configNotes": "General comments about this config file",
-    "owner" : "UMN-AtuoPackager",
+    "owner" : "UMN-AutoPackager",
     "supportContact" : "Helpdesk@something",
     "DistributionPointGroupName" : [ "DP-Group1" , "DP-Group2"],
     "DistributionPointName" : [ "DP-Name1" , "DP-Name2"],
