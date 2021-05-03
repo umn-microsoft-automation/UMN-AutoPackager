@@ -6,6 +6,10 @@
     "versionSource": "Filename",
     "sourcePath": "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US",
     "configNotes": "General comments about this config file",
+    "owner" : "UMN-AutoPackager",
+    "supportContact" : "Helpdesk@something",
+    "DistributionPointGroupName" : [ "DP-Group1" , "DP-Group2"],
+    "DistributionPointName" : [ "DP-Name1" , "DP-Name2"],
     "packagingTargets": [
         {
             "type": "MEMCM-Application",
@@ -18,80 +22,98 @@
             ],
             "datePublished": "2020-08-08",
             "allowTSUsage": true,
-            "localizedApplicationName": "{publisher} {productName} {version}",
+            "localizedApplicationName": "{publisher} {productName} {currentVersion}",
             "userCategories": [
                 "cat1",
                 "cat2"
             ],
-            "userDocumentationLink": "documentation",
+            "userDocumentationLink": "https://firefox-source-docs.mozilla.org/browser/index.html",
             "userDocumentationText": "Firefox Docs",
-            "privacyLink": "privacy link",
+            "privacyLink": "https://www.mozilla.org/en-US/firefox/privacy/",
             "localizedDescription": "",
             "keywords": [
                 "keyword1",
                 "keyword2"
             ],
             "featuredApp": false,
+            "IconLocationFile" : "",
             "deploymentTypes": [
                 {
                     "name": "x64",
                     "installerType": "script",
                     "adminComments": "comment",
-                    "language": "English",
+                    "language": "en-US",
                     "cacheContent": false,
                     "branchCache": false,
                     "contentFallback": false,
-                    "onSlowNetwork": "download",
+                    "onSlowNetwork": "Download",
                     "installCMD": null,
                     "uninstallCMD": null,
                     "runAs32Bit": false,
-                    "installBehavior": "system",
-                    "logonRequired": false,
-                    "userInteraction": "hidden",
+                    "installBehavior": "InstallForSystem",
+                    "logonRequired": "WhetherOrNotUserLoggedOn",
+                    "userInteraction": "Hidden",
                     "estimatedRuntime": 5,
                     "maxRuntime": 15,
-                    "rebootBehavior": "ExitCode",
+                    "rebootBehavior": "BasedOnExitCode",
+                    "ContentLocation" : "\\\\drive.somewhere\\configmgr\\Mozilla\\Firefox",
                     "detectionMethods": [
                         {
-                            "type": "directoryExist",
+                            "type": "Directory",
                             "directoryName": "dirName",
                             "path": "pathToDirLocation",
                             "is64Bit": false,
                             "existence": true
                         },
                         {
-                            "type": "directoryProperty",
-                            "directoryName": "dirName",
-                            "path": "pathToDirLocation",
-                            "is64Bit": false,
-                            "propertyType": "FileFolderProperty",
-                            "expectedValue": "value",
-                            "expressionOperator": "operator"
+                            "type" : "Directory",
+                            "DirectoryName" : "Mozilla Firefox",
+                            "ExpectedValue" : "2020-11-30T08:00:00Z",
+                            "ExpressionOperator" : "GreaterThan",
+                            "Path" : "C:\\Program Files\\",
+                            "PropertyType" : "DateModified",
+                            "Value" : true
                         },
                         {
-                            "type": "fileExist",
+                            "type": "File",
                             "fileName": "fileName",
                             "path": "pathToFile",
                             "is64Bit": false,
                             "existence": true
                         },
                         {
-                            "type": "fileProperty",
-                            "fileName": "fileName",
-                            "path": "pathToFile",
-                            "is64Bit": false,
-                            "propertyType": "FileFolderProperty",
-                            "expectedValue": "value",
-                            "expressionOperator": "operator"
+                            "type" : "File",
+                            "ExpectedValue" : "87.0.0.7747",
+                            "ExpressionOperator" : "GreaterEquals",
+                            "FileName" : "Firefox.exe",
+                            "Path" : "C:\\Program Files\\Mozilla\\",
+                            "PropertyType" : "Version",
+                            "Value" : true
                         },
                         {
-                            "type": "registryKey",
-                            "hive": "registryRootKey",
-                            "keyName": "keyName",
-                            "existence": true
+                            "type" : "RegistryKeyValue",
+                            "ExpectedValue" : "87.0",
+                            "ExpressionOperator" : "GreaterEquals",
+                            "Hive" : "LocalMachine",
+                            "KeyName" : "SOFTWARE\\mozilla.org\\Mozilla",
+                            "PropertyType" : "Version",
+                            "Value" : true,
+                            "ValueName" : "CurrentVersion"
                         },
                         {
-                            "type": "file"
+                            "type" : "RegistryKey",
+                            "Existence" : false,
+                            "Hive" : "LocalMachine",
+                            "Is64Bit" : false,
+                            "KeyName" : "Mozilla"
+                        },
+                        {
+                            "type" : "WindowsInstaller",
+                            "Existence" : true,
+                            "ExpectedValue" : "",
+                            "ExpressionOperator" : "",
+                            "ProductCode" : "4F7840A9-9816-45E2-9F6C-F7067A8BC0FD",
+                            "PropertyType" : null
                         }
                     ]
                 },

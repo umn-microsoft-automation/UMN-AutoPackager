@@ -6,13 +6,15 @@
       "Site": "site.something.com",
       "SiteCode": "COM",
       "DownloadLocationPath": "C:\\Temp",
-      "ApplicationContentPath": "\\\\AppStorage.somewhere\\"
+      "ApplicationContentPath": "\\\\AppStorage.somewhere\\",
+      "BaseappName" : "Base"
     },
     {
       "Site": "something.something.something",
       "SiteCode": "DOD",
       "DownloadLocationPath": "\\\\path.somewhere",
-      "ApplicationContentPath": "\\\\App.somewhere.content"
+      "ApplicationContentPath": "\\\\App.somewhere.content",
+      "BaseappName" : "Base2"
     }
   ],
   "RecipeLocations": [
