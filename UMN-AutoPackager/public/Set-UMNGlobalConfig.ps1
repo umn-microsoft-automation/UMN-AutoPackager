@@ -8,7 +8,7 @@ function Set-UMNGlobalConfig {
         Set-UMNGlobalConfig -Path .\GlobalConfig.json -Key CompanyName  -Value "University of Minnesota"
         Sets the value of CompanyName to University of Minnesota for the config.json file
     .EXAMPLE
-        Set-UMNGlobalConfig -Path .\GlobalConfig.json -Key ConfigMgr -SiteServer "my.config.site"  -SiteCode "COM" -DownloadLocationPath "C:\\Temp" -ApplicationContentPath "\\appstorage.somewhere\"
+        Set-UMNGlobalConfig -Path .\GlobalConfig.json -Key ConfigMgr -SiteServer "my.config.site"  -SiteCode "COM" -DownloadLocationPath "C:\Temp" -ApplicationContentPath "\\appstorage.somewhere\"
         Sets the values for a ConfigMgr site to be added to the config.json file
     .EXAMPLE
         Set-UMNGlobalConfig -Path .\GlobalConfig.json -Key RecipeLocations -Value "\\file.server\recipes" -LocationType "directory"
