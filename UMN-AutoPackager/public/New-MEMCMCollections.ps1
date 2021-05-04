@@ -90,7 +90,11 @@ function New-MEMCMCollections {
                                     $sched = New-CMSchedule -Start $startdate -LastDayOfMonth
                                     $CollectionArguments.set_item("RefreshSchedule",$sched)
                                 }
-                            # Look at adding OffsetDay. Might be able to just add a check for the value.
+                                elseif ($collection.WeekOrder) {
+                                    Write-Verbose -Message "Periodic is using WeekOrder"
+                                    $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -WeekOrder $collection.WeekOrder -RecurCount $collection.RecurCount
+                                    $CollectionArguments.set_item("RefreshSchedule",$sched)
+                                }
                                 elseif ($collection.DayOfMonth) {
                                     Write-Verbose -Message "Periodic is using Day of Month"
                                     $sched = New-CMSchedule -Start $startdate -DayOfMonth $collection.DayOfMonth -RecurCount $collection.RecurCount
