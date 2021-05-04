@@ -122,33 +122,37 @@ Task Build -Depends Test {
 
     Write-Warning -Message "BuildDir = $BuildDir"
 
-    if(-not (Test-Path -Path $BuildDir)) {
+    if (-not (Test-Path -Path $BuildDir)) {
         New-Item -Path "$BuildDir" -ItemType Directory -Force
     }
 
-    if(Get-Command -Name "Register-PSRepository" -ErrorAction SilentlyContinue) {
+    if (Get-Command -Name "Register-PSRepository" -ErrorAction SilentlyContinue) {
         Register-PSRepository -name "LocalPSRepo" -SourceLocation $BuildDir -PublishLocation $BuildDir -InstallationPolicy Trusted
-    } else {
+    }
+    else {
         nuget.exe sources Add -Name "LocalPSRepo" -Source "$BuildDir"
     }
 
     try {
         [System.Version]$GalleryVersion = Get-NextNugetPackageVersion -Name $env:BHProjectName -ErrorAction Stop
-    } catch {
+    }
+    catch {
         Write-Warning -Message "Failed to update gallery version for '$env:BHProjectName': $_.`nContinuing with existing version"
         [System.Version]$GalleryVersion = "0.0.0"
     }
 
     try {
         [System.Version]$GitHubVersion = Get-Metadata -Path $env:BHPSModuleManifest -PropertyName ModuleVersion -ErrorAction Stop
-    } catch {
+    }
+    catch {
         Write-Warning -Message "Failed to update GitHub version for '$env:BHProjectName': $_`nContinuing with existing version"
         [System.Version]$GitHubVersion = "0.0.0"
     }
 
     try {
         [System.Version]$LocalPSRepoVersion = Find-Module -Name $env:BHProjectName | Select-Object -ExpandProperty Version
-    } catch {
+    }
+    catch {
         Write-Warning -Message "Failed to pull local repo version."
         [System.Version]$LocalPSRepoVersion = "0.0.0"
     }

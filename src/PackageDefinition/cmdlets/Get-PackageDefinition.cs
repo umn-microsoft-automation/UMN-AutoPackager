@@ -37,8 +37,8 @@ namespace UMNAutoPackger
             }
             catch (JsonException ex)
             {
-                ErrorRecord ErrorRecord = new ErrorRecord(ex, "JsonError", ErrorCategory.NotSpecified, filePath);
-                WriteError(ErrorRecord);
+                ErrorRecord ER = new ErrorRecord(ex, "JsonError", ErrorCategory.NotSpecified, filePath);
+                WriteError(ER);
             }
 
         }
