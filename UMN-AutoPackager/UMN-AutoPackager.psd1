@@ -1,5 +1,6 @@
 @{
     RootModule        = 'UMN-AutoPackager.psm1'
+    NestedModules     = @('bin\UMN-AutoPackager.dll')
     ModuleVersion     = '0.0.1'
     GUID              = '9dff7a8a-115f-42be-8dd2-6b946dc9d9e4'
     Author            = 'University of Minnesota', 'Jeff Bolduan'
@@ -11,7 +12,6 @@
     CmdletsToExport   = '*'
     VariablesToExport = '*'
     AliasesToExport   = '*'
-    NestedModules     = @('bin\UMN-AutoPackager.dll')
     PrivateData       = @{
         Tags         = @('Automation', 'MEMCM', 'SCCM', 'Intune', 'UMN')
         LicenseUri   = 'https://github.com/umn-microsoft-automation/UMN-AutoPackager/blob/main/LICENSE'

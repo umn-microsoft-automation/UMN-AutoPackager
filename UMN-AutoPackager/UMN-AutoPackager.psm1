@@ -10,4 +10,8 @@ foreach ($Import in @($Public + $Private)) {
     }
 }
 
+# Export only the powershell functions that are public
 Export-ModuleMember -Function $Public.BaseName
+
+# Export the cmdlets from the dll.  There might be a better way of handling this aside from *, needs further investigation.
+Export-ModuleMember -Cmdlet *

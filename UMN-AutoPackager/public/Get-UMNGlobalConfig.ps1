@@ -12,7 +12,7 @@ function Get-UMNGlobalConfig {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory=$True, HelpMessage = "The full path and file name of the JSON file to get the config from")]
+        [Parameter(Mandatory = $True, HelpMessage = "The full path and file name of the JSON file to get the config from")]
         [ValidateNotNullOrEmpty()]
         [string]$Path
     )
@@ -23,7 +23,7 @@ function Get-UMNGlobalConfig {
         $json = Get-Content -Path $Path -Raw
         $config = ConvertFrom-Json -InputObject $json
         Write-Output -InputObject $config
-        }
+    }
     end {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
     }
