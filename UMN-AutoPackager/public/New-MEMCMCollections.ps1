@@ -71,7 +71,6 @@ function New-MEMCMCollections {
                         $CollectionArguments = @{
                             Name = $collection.Name
                             LimitingCollectionName = $collection.LimitingCollectionName
-                            # RefreshType must be None, Manual, Periodic, Continuous, Both
                             RefreshType = $collection.RefreshType
                             RefreshSchedule = ""
                         }
@@ -113,8 +112,17 @@ function New-MEMCMCollections {
                                 Write-Warning -Message "Error: $($_.Exception.Message)"
                             }
                         }
-                        # Build the collection if none.
-                        # Build the collection if Continuous.
+                        else {
+                            Write-Verbose -Message "Not periodic creating the collection: $($CollectionArguments.Name)"
+                            $CollectionArguments.Remove('RefreshSchedule')
+                            try {
+                                New-CMDeviceCollection @CollectionArguments
+                            }
+                            catch {
+                                Write-Error $Error[0]
+                                Write-Warning -Message "Error: $($_.Exception.Message)"
+                            }
+                        }
                     }
                 }#foreach $CollectionTargets
             }#foreach $PackageDefinition
