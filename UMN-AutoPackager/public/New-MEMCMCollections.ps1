@@ -14,7 +14,7 @@ function New-MEMCMCollections {
     New-MEMCMCollections -GlobalConfig (Get-UMNGlobalConfig -Path C:\UMNAutopackager\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\UMNAutopackager\PackageConfig.json) -Credential MyUserName
     Runs the function prompting for the credentials of MyUserName.
     .EXAMPLE
-    Build-MEMCMPackage -GlobalConfig $globaljson -PackageDefinition $pkgjson -Credential $creds
+    New-MEMCMCollections -GlobalConfig $globaljson -PackageDefinition $pkgjson -Credential $creds
     Runs the function using the credentials stored in the $creds variable.
     #>
     [CmdletBinding()]
