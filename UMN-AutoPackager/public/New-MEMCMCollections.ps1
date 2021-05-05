@@ -1,35 +1,22 @@
-function Get-UMNGlobalConfig {
+function New-MEMCMCollections {
     <#
     .SYNOPSIS
-        Gets all the global configurations and value for each from a JSON file used by the auto packager.
+    Creates new collections in Configuration Manager based on the values of the UMNAutopackager json files.
     .DESCRIPTION
-        This command retrieves from a json file the values of various global configurations used as part of the AutoPackager. It requires a the full path and name of the JSON file.
+    This command creates new collection(s) for each site based on the values of the GlobalConfig and PackageConfig json values. It leverages various powershell commands provided with ConfigMgr.
+    .PARAMETER GlobalConfig
+    Input the global configuration json file using the Get-GlobalConfig command
+    .PARAMETER PackageDefinition
+    Input the package definition json file using the Get-GlobalConfig command
+    .PARAMETER Credential
+    Input the credentials object or the user name which will prompt for credentials. If not called will attempt to use the credentials of the account that is running the script.
     .EXAMPLE
-        Get-UMNGlobalConfig -Path .\config.json
-        Gets the values of the config.json file
-    .PARAMETER Path
-        The full path and file name of the JSON file to get the config from
+    New-MEMCMCollections -GlobalConfig (Get-UMNGlobalConfig -Path C:\UMNAutopackager\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\UMNAutopackager\PackageConfig.json) -Credential MyUserName
+    Runs the function prompting for the credentials of MyUserName.
+    .EXAMPLE
+    Build-MEMCMPackage -GlobalConfig $globaljson -PackageDefinition $pkgjson -Credential $creds
+    Runs the function using the credentials stored in the $creds variable.
     #>
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $True, HelpMessage = "The full path and file name of the JSON file to get the config from")]
-        [ValidateNotNullOrEmpty()]
-        [string]$Path
-    )
-    begin {
-        Write-Verbose -Message "Starting $($myinvocation.mycommand)"
-    }
-    process {
-        $json = Get-Content -Path $Path -Raw
-        $config = ConvertFrom-Json -InputObject $json
-        Write-Output -InputObject $config
-    }
-    end {
-        Write-Verbose -Message "Ending $($myinvocation.mycommand)"
-    }
-}#Get-UMNGlobalConfig
-# Creates a collection(s) based on the Config settings. Need the Limiting Collection to base this on.
-function New-MEMCMCollections {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true,
@@ -142,4 +129,3 @@ function New-MEMCMCollections {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
     }
 }#New-MEMCMCollections
-New-MEMCMCollections -GlobalConfig (Get-UMNGlobalConfig C:\users\thoen008\Desktop\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig C:\users\thoen008\Desktop\PackageConfig.json) -Credential oitthoen008 -Verbose
