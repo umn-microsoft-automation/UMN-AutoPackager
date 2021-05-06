@@ -107,21 +107,27 @@ function Deploy-MEMCMPackage {
                 }
                 Write-Verbose -Message "Application name is $NewAppName"
                 # Check if the application exists if it does continue with building deployments. Othewise move on.
-                foreach ($collection in $PkgObject.CollectionTargets) {
-                    if (($collection.type -eq "MEMCM-Collection") -and (Get-CMCollection -Name $collection.Name)) {
-                        # Collection does exist, building the deployments
-                        Write-Verbose -Message "Building deployments for ConfigMgr"
-                        # Foreach loop to grab all the deployment settings
-                        # Is there a need for multiple deployments to one collection?
-                        # build the hashtable to splat with
-                        # get-date is going to be needed
-                        # Update the json with the values needed
-                        # delete the old deployments if they exist and if the version deployed is older then the current one else do nothing
-                    }
-                    else {
-                        Write-Verbose -Message "$($collection.Name) does not exist or is not a MEMCM-Collection type."
-                    }
-                }#foreach $CollectionTargets
+                if (Get-CMApplication -Name $NewAppName) {
+                    foreach ($collection in $PkgObject.CollectionTargets) {
+                        if (($collection.type -eq "MEMCM-Collection") -and (Get-CMCollection -Name $collection.Name)) {
+                            # Collection does exist, building the deployments
+                            Write-Verbose -Message "Building deployments for ConfigMgr"
+                            $DeploymentArguments = @{
+                                Name = $NewAppName
+                                CollectionName = $collection.Name
+                                AllowRepairApp = $collection.deploymentSetting.allowRepairApp
+                            }
+                            # build the hashtable to splat with
+                            # get-date is going to be needed
+                            # Update the json with the values needed
+                            # delete the old deployments if they exist and if the version deployed is older then the current one else do nothing
+                            # Need to build logic for creating -DeadlineDateTime using Get-Date or -AvailableDateTime
+                        }
+                        else {
+                            Write-Verbose -Message "$($collection.Name) does not exist or is not a MEMCM-Collection type."
+                        }
+                    }#foreach $CollectionTargets
+                }
             }#foreach $PackageDefinition
             Pop-Location
             $ConfigMgrDrive | Remove-PSDrive
@@ -131,3 +137,4 @@ function Deploy-MEMCMPackage {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
     }
 }#Deploy-MEMCMPackage
+Deploy-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\PackageConfig.json) -Credential oitthoen008 -verbose
