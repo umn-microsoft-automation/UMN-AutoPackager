@@ -109,22 +109,85 @@ function Deploy-MEMCMPackage {
                 # Check if the application exists if it does continue with building deployments. Othewise move on.
                 if (Get-CMApplication -Name $NewAppName) {
                     foreach ($collection in $PkgObject.CollectionTargets) {
-                        if (($collection.type -eq "MEMCM-Collection") -and (Get-CMCollection -Name $collection.Name)) {
-                            # Collection does exist, building the deployments
-                            Write-Verbose -Message "Building deployments for ConfigMgr"
-                            $DeploymentArguments = @{
-                                Name = $NewAppName
-                                CollectionName = $collection.Name
-                                AllowRepairApp = $collection.deploymentSetting.allowRepairApp
+                        Write-Verbose -Message "Checking for deployment settings"
+                        if ($collection.deploymentSetting) {
+                            Write-Verbose -Message "Checking it is a MEMCM-Collection and the $($collection.name) exist"
+                            if (($collection.type -eq "MEMCM-Collection") -and (Get-CMCollection -Name $collection.Name)) {
+                                Write-Verbose -Message "Checking if the collection has any deployments"
+                                if (Get-CMApplicationDeployment -CollectionName $collection.name) {
+                                    Write-Verbose -Message "$($collection.name) contains deployments"
+                                    $deployments = Get-CMApplicationDeployment -CollectionName $collection.name
+                                    # If deployment(s) exist for each check if the deployment name contains the publisher and product name
+                                    foreach ($deploy in $deployments) {
+                                        if ($deploy.ApplicationName -match $PkgObject.publisher -and $deploy.ApplicationName -match $pkgObject.productName) {
+                                            Write-Verbose -Message "$($deploy.ApplicationName) matches the publisher and product name, removing deployment"
+                                            # Remove the matched deployment
+                                            try {
+                                                Remove-CMApplicationDeployment -Name $deploy.ApplicationName -CollectionName $collection.name -Force
+                                            }
+                                            catch {
+                                                Write-Error $Error[0]
+                                                Write-Warning -Message "Error: $($_.Exception.Message)"
+                                            }
+                                        }
+                                    }
+                                }
+                                Write-Verbose -Message "Building deployments for ConfigMgr"
+                                $DeploymentArguments = @{
+                                    Name                               = $NewAppName
+                                    CollectionName                     = $collection.Name
+                                    AllowRepairApp                     = $collection.deploymentSetting.allowRepairApp
+                                    DeployAction                       = $collection.deploymentSetting.DeployAction
+                                    DeployPurpose                      = $collection.deploymentSetting.DeployPurpose
+                                    OverrideServiceWindow              = $collection.deploymentSetting.OverrideServiceWindow
+                                    PreDeploy                          = $collection.deploymentSetting.PreDeploy
+                                    RebootOutsideServiceWindow         = $collection.deploymentSetting.RebootOutsideServiceWindow
+                                    ReplaceToastNotificationWithDialog = $collection.deploymentSetting.ReplaceToastNotificationWithDialog
+                                    SendWakeupPacket                   = $collection.deploymentSetting.SendWakeupPacket
+                                    TimeBaseOn                         = $collection.deploymentSetting.TimeBaseOn
+                                    UserNotification                   = $collection.deploymentSetting.userNotification
+                                    AvailableDateTime                  = ""
+                                    DeadlineDateTime                   = ""
+                                }
+                                # Setting Date Times for available
+                                if (-not $collection.deploymentsetting.availStart) {
+                                    Write-Verbose -Message "No available time set for this deployment"
+                                }
+                                else {
+                                    $availtime = (Get-Date -Hour $collection.deploymentSetting.availHour -Minute $collection.deploymentSetting.availMinute).AddDays($collection.DeploymentSetting.availstart)
+                                    $DeploymentArguments.set_item("AvailableDateTime" , $availtime)
+                                }
+                                # Setting Date Times for deadline
+                                if (-not $collection.deploymentSetting.deadlineStart) {
+                                    Write-Verbose -Message "No deadline is set for this deployment"
+                                }
+                                else {
+                                    $deadlinetime = (Get-Date -Hour $collection.deploymentSetting.deadlineHour -Minute $collection.deploymentSetting.deadlineMinute).AddDays($collection.DeploymentSetting.deadlineStart)
+                                    $DeploymentArguments.set_item("DeadlineDateTime" , $deadlinetime)
+                                }
+                                # Removing null or empty values from the hashtable
+                                $list = New-Object System.Collections.ArrayList
+                                foreach ($DepA in $DeploymentArguments.Keys) {
+                                    if ([string]::IsNullOrWhiteSpace($DeploymentArguments.$DepA)) {
+                                        $null = $list.Add($DepA)
+                                    }
+                                }
+                                foreach ($item in $list) {
+                                    $DeploymentArguments.Remove($item)
+                                }
+                                Write-Output $DeploymentArguments
+                                try {
+                                    Write-Verbose -Message "Creating deployment of Application: $NewAppName for collection: $($collection.name)"
+                                    New-CMApplicationDeployment @DeploymentArguments
+                                }
+                                catch {
+                                    Write-Error $Error[0]
+                                    Write-Warning -Message "Error: $($_.Exception.Message)"
+                                }
                             }
-                            # build the hashtable to splat with
-                            # get-date is going to be needed
-                            # Update the json with the values needed
-                            # delete the old deployments if they exist and if the version deployed is older then the current one else do nothing
-                            # Need to build logic for creating -DeadlineDateTime using Get-Date or -AvailableDateTime
-                        }
-                        else {
-                            Write-Verbose -Message "$($collection.Name) does not exist or is not a MEMCM-Collection type."
+                            else {
+                                Write-Verbose -Message "$($collection.Name) does not exist or is not a MEMCM-Collection type."
+                            }
                         }
                     }#foreach $CollectionTargets
                 }
