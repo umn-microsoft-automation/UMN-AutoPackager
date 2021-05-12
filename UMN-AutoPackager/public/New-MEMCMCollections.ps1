@@ -36,7 +36,7 @@ function New-MEMCMCollections {
     }
     process {
         foreach ($ConfigMgrObject in ($GlobalConfig.ConfigMgr)) {
-            Write-Verbose -Message "Processing $ConfigMgrObject Site..."
+            Write-Verbose -Message "Processing $($ConfigMgrObject.site) Site..."
             $SiteCode = $ConfigMgrObject.SiteCode
             try {
                 if (-not (Test-Path -Path $SiteCode)) {

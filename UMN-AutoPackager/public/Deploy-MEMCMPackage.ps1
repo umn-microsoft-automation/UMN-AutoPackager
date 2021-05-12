@@ -1,35 +1,3 @@
-function Get-UMNGlobalConfig {
-    <#
-    .SYNOPSIS
-        Gets all the global configurations and value for each from a JSON file used by the auto packager.
-    .DESCRIPTION
-        This command retrieves from a json file the values of various global configurations used as part of the AutoPackager. It requires a the full path and name of the JSON file.
-    .EXAMPLE
-        Get-UMNGlobalConfig -Path .\config.json
-        Gets the values of the config.json file
-    .PARAMETER Path
-        The full path and file name of the JSON file to get the config from
-    #>
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $True, HelpMessage = "The full path and file name of the JSON file to get the config from")]
-        [ValidateNotNullOrEmpty()]
-        [string]$Path
-    )
-    begin {
-        Write-Verbose -Message "Starting $($myinvocation.mycommand)"
-    }
-    process {
-        $json = Get-Content -Path $Path -Raw
-        $config = ConvertFrom-Json -InputObject $json
-        Write-Output -InputObject $config
-    }
-    end {
-        Write-Verbose -Message "Ending $($myinvocation.mycommand)"
-    }
-}#Get-UMNGlobalConfig
-# Check for existing deployment (get-CMApplicationDeployment -Name -CollectionName). Delete them (Remove-CMApplicationDeployment -Name -CollectionName)
-# set up the deployment for collection (New-CMApplicationDeployment)
 function Deploy-MEMCMPackage {
     <#
     .SYNOPSIS
@@ -68,7 +36,7 @@ function Deploy-MEMCMPackage {
     }
     process {
         foreach ($ConfigMgrObject in ($GlobalConfig.ConfigMgr)) {
-            Write-Verbose -Message "Processing $ConfigMgrObject Site..."
+            Write-Verbose -Message "Processing $($ConfigMgrObject.site) Site..."
             $SiteCode = $ConfigMgrObject.SiteCode
             try {
                 if (-not (Test-Path -Path $SiteCode)) {
@@ -82,7 +50,7 @@ function Deploy-MEMCMPackage {
             Push-Location
             Set-Location -Path "$SiteCode`:\"
             foreach ($PkgObject in $PackageDefinition) {
-                Write-Verbose -Message "Processing the package definition $($pkgObject.publisher) $($pkgObject.productname)"
+                Write-Verbose -Message "Processing the package definition for $($pkgObject.publisher) $($pkgObject.productname)"
                 $Keys = $PkgObject | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
                 # Building out the Application Name based on the pattern if used otherwise using the specific name in the field
                 $AppName = $PkgObject.packagingTargets.Name
@@ -106,10 +74,10 @@ function Deploy-MEMCMPackage {
                     $NewAppName = $NewAppName.Insert(0, "$baseAppName-")
                 }
                 Write-Verbose -Message "Application name is $NewAppName"
-                # Check if the application exists if it does continue with building deployments. Othewise move on.
+                # Check if the application exists if it does continue with building deployments
                 if (Get-CMApplication -Name $NewAppName) {
                     foreach ($collection in $PkgObject.CollectionTargets) {
-                        Write-Verbose -Message "Checking for deployment settings"
+                        Write-Verbose -Message "Checking for deployment settings on Collection Target: $($collection.name)"
                         if ($collection.deploymentSetting) {
                             Write-Verbose -Message "Checking it is a MEMCM-Collection and the $($collection.name) exist"
                             if (($collection.type -eq "MEMCM-Collection") -and (Get-CMCollection -Name $collection.Name)) {
@@ -120,8 +88,7 @@ function Deploy-MEMCMPackage {
                                     # If deployment(s) exist for each check if the deployment name contains the publisher and product name
                                     foreach ($deploy in $deployments) {
                                         if ($deploy.ApplicationName -match $PkgObject.publisher -and $deploy.ApplicationName -match $pkgObject.productName) {
-                                            Write-Verbose -Message "$($deploy.ApplicationName) matches the publisher and product name, removing deployment"
-                                            # Remove the matched deployment
+                                            Write-Verbose -Message "$($deploy.ApplicationName) matches the publisher and product name of an existing deployment, removing deployment"
                                             try {
                                                 Remove-CMApplicationDeployment -Name $deploy.ApplicationName -CollectionName $collection.name -Force
                                             }
@@ -132,7 +99,7 @@ function Deploy-MEMCMPackage {
                                         }
                                     }
                                 }
-                                Write-Verbose -Message "Building deployments for ConfigMgr"
+                                Write-Verbose -Message "Building deployment..."
                                 $DeploymentArguments = @{
                                     Name                               = $NewAppName
                                     CollectionName                     = $collection.Name
@@ -150,20 +117,23 @@ function Deploy-MEMCMPackage {
                                     DeadlineDateTime                   = ""
                                 }
                                 # Setting Date Times for available
-                                if (-not $collection.deploymentsetting.availStart) {
-                                    Write-Verbose -Message "No available time set for this deployment"
-                                }
-                                else {
+                                if ($collection.deploymentSetting.availStart) {
+                                    Write-Verbose -Message "availStart: $($collection.deploymentSetting.availStart)"
                                     $availtime = (Get-Date -Hour $collection.deploymentSetting.availHour -Minute $collection.deploymentSetting.availMinute).AddDays($collection.DeploymentSetting.availstart)
                                     $DeploymentArguments.set_item("AvailableDateTime" , $availtime)
                                 }
-                                # Setting Date Times for deadline
-                                if (-not $collection.deploymentSetting.deadlineStart) {
-                                    Write-Verbose -Message "No deadline is set for this deployment"
-                                }
                                 else {
+                                    Write-Verbose -Message "No availStart setting as current date and time"
+                                    $DeploymentArguments.set_item("AvailableDateTime" , (Get-Date))
+                                }
+                                # Setting Date Times for deadline
+                                if ($collection.deploymentSetting.deadlineStart) {
+                                    Write-Verbose -Message "deadlineStart: $($collection.deploymentSetting.deadlineStart)"
                                     $deadlinetime = (Get-Date -Hour $collection.deploymentSetting.deadlineHour -Minute $collection.deploymentSetting.deadlineMinute).AddDays($collection.DeploymentSetting.deadlineStart)
                                     $DeploymentArguments.set_item("DeadlineDateTime" , $deadlinetime)
+                                }
+                                else {
+                                    Write-Verbose -Message "No deadlineStart"
                                 }
                                 # Removing null or empty values from the hashtable
                                 $list = New-Object System.Collections.ArrayList
@@ -175,7 +145,6 @@ function Deploy-MEMCMPackage {
                                 foreach ($item in $list) {
                                     $DeploymentArguments.Remove($item)
                                 }
-                                Write-Output $DeploymentArguments
                                 try {
                                     Write-Verbose -Message "Creating deployment of Application: $NewAppName for collection: $($collection.name)"
                                     New-CMApplicationDeployment @DeploymentArguments
@@ -183,6 +152,15 @@ function Deploy-MEMCMPackage {
                                 catch {
                                     Write-Error $Error[0]
                                     Write-Warning -Message "Error: $($_.Exception.Message)"
+                                }
+                                # Creates the time as UTC regardless of TimeBaseOn switch being set to LocalTime setting the date time
+                                if ($collection.deploymentSetting.timeBaseOn -eq "LocalTime" -and $collection.deploymentSetting.deadlineStart) {
+                                    Write-Verbose -Message "Time based on LocalTime and deadline start has a value"
+                                    Set-CMApplicationDeployment -ApplicationName $DeploymentArguments.Name -CollectionName $deploymentArguments.CollectionName -DeadlineDatetime $DeploymentArguments.DeadlineDateTime -AvailableDateTime $DeploymentArguments.AvailableDateTime
+                                }
+                                elseif ($collection.deploymentSetting.timeBaseOn -eq "LocalTime" -and (-not $collection.deploymentSetting.deadlineStart)) {
+                                    Write-Verbose -Message "Time based on LocalTime and no deadline start value"
+                                    Set-CMApplicationDeployment -ApplicationName $DeploymentArguments.Name -CollectionName $deploymentArguments.CollectionName -AvailableDateTime $DeploymentArguments.AvailableDateTime
                                 }
                             }
                             else {
@@ -200,4 +178,3 @@ function Deploy-MEMCMPackage {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
     }
 }#Deploy-MEMCMPackage
-Deploy-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\Users\thoen008\Desktop\PackageConfig.json) -Credential oitthoen008 -verbose
