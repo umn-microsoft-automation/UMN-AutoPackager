@@ -8,17 +8,17 @@
     "configNotes": "General comments about this config file",
     "owner": "UMN-AutoPackager",
     "supportContact": "Helpdesk@something",
-    "DistributionPointGroupName": [
-        "DP-Group1",
-        "DP-Group2"
-    ],
-    "DistributionPointName": [
-        "DP-Name1",
-        "DP-Name2"
-    ],
     "packagingTargets": [
         {
             "type": "MEMCM-Application",
+            "distributionPointGroupName": [
+                "DP-Group1",
+                "DP-Group2"
+            ],
+            "distributionPointName": [
+                "DP-Name1",
+                "DP-Name2"
+            ],
             "name": "{baseAppName}-{publisher}-{productName}-{version}",
             "adminComments": null,
             "optionalReference": null,
@@ -42,7 +42,7 @@
                 "keyword2"
             ],
             "featuredApp": false,
-            "IconLocationFile": "",
+            "iconLocationFile": "",
             "deploymentTypes": [
                 {
                     "name": "x64",
@@ -73,12 +73,12 @@
                         },
                         {
                             "type": "Directory",
-                            "DirectoryName": "Mozilla Firefox",
-                            "ExpectedValue": "2020-11-30T08:00:00Z",
-                            "ExpressionOperator": "GreaterThan",
-                            "Path": "C:\\Program Files\\",
-                            "PropertyType": "DateModified",
-                            "Value": true
+                            "directoryName": "Mozilla Firefox",
+                            "expectedValue": "2020-11-30T08:00:00Z",
+                            "expressionOperator": "GreaterThan",
+                            "path": "C:\\Program Files\\",
+                            "propertyType": "DateModified",
+                            "value": true
                         },
                         {
                             "type": "File",
@@ -89,37 +89,37 @@
                         },
                         {
                             "type": "File",
-                            "ExpectedValue": "87.0.0.7747",
-                            "ExpressionOperator": "GreaterEquals",
-                            "FileName": "Firefox.exe",
-                            "Path": "C:\\Program Files\\Mozilla\\",
-                            "PropertyType": "Version",
-                            "Value": true
+                            "expectedValue": "87.0.0.7747",
+                            "expressionOperator": "GreaterEquals",
+                            "fileName": "Firefox.exe",
+                            "path": "C:\\Program Files\\Mozilla\\",
+                            "propertyType": "Version",
+                            "value": true
                         },
                         {
                             "type": "RegistryKeyValue",
-                            "ExpectedValue": "87.0",
-                            "ExpressionOperator": "GreaterEquals",
-                            "Hive": "LocalMachine",
-                            "KeyName": "SOFTWARE\\mozilla.org\\Mozilla",
-                            "PropertyType": "Version",
-                            "Value": true,
-                            "ValueName": "CurrentVersion"
+                            "expectedValue": "87.0",
+                            "expressionOperator": "GreaterEquals",
+                            "hive": "LocalMachine",
+                            "keyName": "SOFTWARE\\mozilla.org\\Mozilla",
+                            "propertyType": "Version",
+                            "value": true,
+                            "valueName": "CurrentVersion"
                         },
                         {
                             "type": "RegistryKey",
-                            "Existence": false,
-                            "Hive": "LocalMachine",
-                            "Is64Bit": false,
-                            "KeyName": "Mozilla"
+                            "existence": false,
+                            "hive": "LocalMachine",
+                            "is64Bit": false,
+                            "keyName": "Mozilla"
                         },
                         {
                             "type": "WindowsInstaller",
-                            "Existence": true,
-                            "ExpectedValue": "",
-                            "ExpressionOperator": "",
-                            "ProductCode": "4F7840A9-9816-45E2-9F6C-F7067A8BC0FD",
-                            "PropertyType": null
+                            "existence": true,
+                            "expectedValue": "",
+                            "expressionOperator": "",
+                            "productCode": "4F7840A9-9816-45E2-9F6C-F7067A8BC0FD",
+                            "propertyType": null
                         }
                     ]
                 },

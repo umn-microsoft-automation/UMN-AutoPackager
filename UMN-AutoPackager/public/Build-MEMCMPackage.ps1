@@ -291,7 +291,7 @@ function Build-MEMCMPackage {
                         }
                     }
                     # Distributing the Application content
-                    if ($PkgObject.DistributionPointName) {
+                    if ($PkgObject.PackagingTargets.DistributionPointName) {
                         Write-Verbose -Message "Distributing content to a set of DP names"
                         try {
                             Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointName $PkgObject.DistributionPointName
@@ -301,7 +301,7 @@ function Build-MEMCMPackage {
                             Write-Warning -Message "Error: $($_.Exception.Message)"
                         }
                     }
-                    if ($PkgObject.DistributionPointGroupName) {
+                    if ($PkgObject.PackagingTargets.DistributionPointGroupName) {
                         Write-Verbose -Message "Distributing content to a set of DP groups"
                         try {
                             Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointGroupName $pkgObject.DistributionPointGroupName
