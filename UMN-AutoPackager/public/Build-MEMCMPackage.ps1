@@ -42,7 +42,7 @@ function Build-MEMCMPackage {
     }
     process {
         foreach ($ConfigMgrObject in ($GlobalConfig.ConfigMgr)) {
-            Write-Verbose -Message "Processing $ConfigMgrObject Site..."
+            Write-Verbose -Message "Processing $($ConfigMgrObject.site) Site..."
             $SiteCode = $ConfigMgrObject.SiteCode
             try {
                 if (-not (Test-Path -Path $SiteCode)) {
@@ -56,7 +56,7 @@ function Build-MEMCMPackage {
             Push-Location
             Set-Location -Path "$SiteCode`:\"
             foreach ($PkgObject in $PackageDefinition) {
-                Write-Verbose -Message "Processing the package definition $($pkgObject.publisher) $($pkgObject.productname)"
+                Write-Verbose -Message "Processing the package definition for $($pkgObject.publisher) $($pkgObject.productname)"
                 if ($PkgObject.PackagingTargets.Type -eq "MEMCM-Application") {
                     $Keys = $PkgObject | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
                     # Building out the Application Name based on the pattern if used otherwise using the specific name in the field

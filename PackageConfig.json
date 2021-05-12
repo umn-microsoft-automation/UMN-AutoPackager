@@ -16,6 +16,160 @@
         "DP-Name1",
         "DP-Name2"
     ],
+    "collectionTargets": [
+        {
+            "type": "MEMCM-Collection",
+            "name": "UWIDE-Updates-Mozilla Firefox-Test",
+            "limitingCollectionName": "Test Systems",
+            "refreshtype": "Periodic",
+            "recurInterval": "Days",
+            "recurCount": 1,
+            "month": 4,
+            "day": 30,
+            "year": 2021,
+            "hour": 14,
+            "minute": 0,
+            "deploymentSetting" :
+                {
+                    "allowRepairApp" : false,
+                    "deployAction" : "Install",
+                    "deployPurpose" : "Required",
+                    "overrideServiceWindow" : false,
+                    "preDeploy" : true,
+                    "rebootOutsideServiceWindow" : false,
+                    "replaceToastNotificationWithDialog" : false,
+                    "sendWakeupPacket" : false,
+                    "timeBaseOn" : "LocalTime",
+                    "userNotification" : "DisplayAll",
+                    "availStart": 2,
+                    "availHour" : 12,
+                    "availMinute" : 33,
+                    "deadlineStart": 5,
+                    "deadlineHour" : 2,
+                    "deadlineMinute" : 33
+                }
+        },
+        {
+            "type": "MEMCM-Collection",
+            "name": "UWIDE-Updates-Mozilla Firefox-WeekOrder",
+            "limitingCollectionName": "Test Systems",
+            "refreshtype": "Both",
+            "recurInterval": "Month",
+            "lastDayOfMonth": false,
+            "dayOfWeek": "Friday",
+            "weekOrder": "Fourth",
+            "dayOfMonth": 7,
+            "recurCount": 3,
+            "month": 4,
+            "day": 30,
+            "year": 2021,
+            "hour": 14,
+            "minute": 0,
+            "deploymentSetting" :
+                {
+                    "allowRepairApp" : true,
+                    "deployAction" : "Install",
+                    "deployPurpose" : "Available",
+                    "overrideServiceWindow" : false,
+                    "replaceToastNotificationWithDialog" : true,
+                    "timeBaseOn" : "LocalTime",
+                    "userNotification" : "DisplayAll",
+                    "availStart": 1,
+                    "availHour" : 19,
+                    "availMinute" : 0
+                }
+        },
+        {
+            "type": "MEMCM-Collection",
+            "name": "UWIDE-Updates-Mozilla Firefox-Production",
+            "limitingCollectionName": "Test Systems",
+            "refreshtype": "Both",
+            "recurInterval": "Month",
+            "lastDayOfMonth": false,
+            "dayOfMonth": 7,
+            "recurCount": 1,
+            "month": 4,
+            "day": 30,
+            "year": 2021,
+            "hour": 14,
+            "minute": 0,
+            "deploymentSetting" :
+                {
+                    "allowRepairApp" : false,
+                    "deployAction" : "Install",
+                    "deployPurpose" : "Required",
+                    "overrideServiceWindow" : false,
+                    "preDeploy" : true,
+                    "rebootOutsideServiceWindow" : false,
+                    "replaceToastNotificationWithDialog" : false,
+                    "sendWakeupPacket" : false,
+                    "timeBaseOn" : "LocalTime",
+                    "userNotification" : "DisplayAll",
+                    "availStart": 5,
+                    "availHour" : 12,
+                    "availMinute" : 0,
+                    "deadlineStart": 15,
+                    "deadlineHour" : 2,
+                    "deadlineMinute" : 0
+                }
+        },
+        {
+            "type": "MEMCM-Collection",
+            "name": "UWIDE-Updates-Mozilla Firefox-Final",
+            "limitingCollectionName": "Test Systems",
+            "refreshtype": "Periodic",
+            "recurInterval": "Week",
+            "dayOfWeek": "Tuesday",
+            "recurCount": 1,
+            "month": 4,
+            "day": 30,
+            "year": 2021,
+            "hour": 14,
+            "minute": 0,
+            "deploymentSetting" :
+                {
+                    "allowRepairApp" : false,
+                    "deployAction" : "Install",
+                    "deployPurpose" : "Required",
+                    "overrideServiceWindow" : false,
+                    "preDeploy" : true,
+                    "rebootOutsideServiceWindow" : false,
+                    "replaceToastNotificationWithDialog" : false,
+                    "sendWakeupPacket" : false,
+                    "timeBaseOn" : "LocalTime",
+                    "userNotification" : "DisplayAll",
+                    "availStart": 15,
+                    "availHour" : 12,
+                    "availMinute" : 15,
+                    "deadlineStart": 25,
+                    "deadlineHour" : 3,
+                    "deadlineMinute" : 11
+                }
+        },
+        {
+            "type": "MEMCM-Collection",
+            "name": "UWIDE-Updates-Mozilla Firefox-None",
+            "limitingCollectionName": "Test Systems",
+            "refreshtype": "None",
+            "deploymentSetting" :
+                {
+                    "deployAction" : "Uninstall",
+                    "deployPurpose" : "Required",
+                    "timeBaseOn" : "UTC",
+                    "overrideServiceWindow" : true,
+                    "rebootOutsideServiceWindow" : true,
+                    "deadlineStart": 25,
+                    "deadlineHour" : 3,
+                    "deadlineMinute" : 11
+                }
+        },
+        {
+            "type": "MEMCM-Collection",
+            "name": "UWIDE-Updates-Mozilla Firefox-Continuous",
+            "limitingCollectionName": "Test Systems",
+            "refreshtype": "Continuous"
+        }
+    ],
     "packagingTargets": [
         {
             "type": "MEMCM-Application",
