@@ -12,6 +12,8 @@ namespace UMNAutoPackger
         public string VersionSource { get; set; }
         public Uri SourcePath { get; set; }
         public string ConfigNotes { get; set; }
+        public string Owner { get; set; }
+        public string SupportContact { get; set; }
         public PackagingTarget[] PackagingTargets { get; set; }
     }
 }

@@ -32,7 +32,7 @@
                     "year": 2021,
                     "hour": 14,
                     "minute": 0,
-                    "deploymentSetting": {
+                    "deploymentSettings": {
                         "allowRepairApp": false,
                         "deployAction": "Install",
                         "deployPurpose": "Required",
