@@ -41,7 +41,7 @@
                         "rebootOutsideServiceWindow": false,
                         "replaceToastNotificationWithDialog": false,
                         "sendWakeupPacket": false,
-                        "timeBaseOn": "LocalTime",
+                        "timeBasedOn": "LocalTime",
                         "userNotification": "DisplayAll",
                         "availStart": 2,
                         "availHour": 12,
