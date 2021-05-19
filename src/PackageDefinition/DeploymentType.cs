@@ -1,6 +1,6 @@
 namespace UMNAutoPackger
 {
-    public class DeploymentType
+    public class DeploymentType : PackageDefinitionBase
     {
         public string Name { get; set; }
         public string InstallerType { get; set; }

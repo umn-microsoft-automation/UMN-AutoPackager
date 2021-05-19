@@ -1,8 +1,6 @@
-using System;
-
 namespace UMNAutoPackger
 {
-    public class DeploymentSetting
+    public class DeploymentSetting : PackageDefinitionBase
     {
         public bool AllowRepairApp { get; set; }
         public string DeployAction { get; set; }

@@ -1,6 +1,7 @@
 namespace UMNAutoPackger
+
 {
-    public class DetectionMethod
+    public class DetectionMethod : PackageDefinitionBase
     {
         // Might need to make this a datatype
         public string Type { get; set; }

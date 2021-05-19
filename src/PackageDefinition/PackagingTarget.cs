@@ -2,7 +2,7 @@ using System;
 
 namespace UMNAutoPackger
 {
-    public class PackagingTarget
+    public class PackagingTarget : PackageDefinitionBase
     {
         public string Type { get; set; }
         public string[] DistributionPointGroupName { get; set; }
@@ -12,7 +12,23 @@ namespace UMNAutoPackger
         public string AdminComments { get; set; }
         public string OptionalReference { get; set; }
         public string[] AdminCategories { get; set; }
-        public DateTime DatePublished { get; set; }
+
+        // We need a private variable for the public variable.
+        private DateTime datePublished;
+        public String DatePublished
+        {
+            get
+            {
+                return datePublished.ToString();
+            }
+            set
+            {
+                if (value == "{currentDate}")
+                {
+                    datePublished = DateTime.Now;
+                }
+            }
+        }
         public bool AllowTSUsage { get; set; }
         public string LocalizedApplicationName { get; set; }
         public string[] UserCategories { get; set; }

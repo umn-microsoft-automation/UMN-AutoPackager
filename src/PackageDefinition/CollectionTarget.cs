@@ -1,8 +1,6 @@
-using System;
-
 namespace UMNAutoPackger
 {
-    public class CollectionTarget
+    public class CollectionTarget : PackageDefinitionBase
     {
         public string Type { get; set; }
         public string Name { get; set; }

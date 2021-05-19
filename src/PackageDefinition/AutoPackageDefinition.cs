@@ -1,9 +1,8 @@
 using System;
-using System.Text.Json.Serialization;
 
 namespace UMNAutoPackger
 {
-    public class AutoPackageDefinition
+    public class AutoPackageDefinition : PackageDefinitionBase
     {
         public string Publisher { get; set; }
         public string ProductName { get; set; }
