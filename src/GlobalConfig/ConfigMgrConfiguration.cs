@@ -1,6 +1,6 @@
 namespace UMNAutoPackger
 {
-    public class ConfigurationManagerSite
+    public class ConfigurationManagerSite : GlobalConfigBase
     {
         public string Site;
         public string SiteCode;

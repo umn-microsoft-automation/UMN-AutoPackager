@@ -2,7 +2,7 @@ using System;
 
 namespace UMNAutoPackger
 {
-    public class AutoPackagerConfiguration
+    public class AutoPackagerConfiguration : GlobalConfigBase
     {
         public string CompanyName;
         public DateTime LastModified;
