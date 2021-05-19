@@ -1,3 +1,5 @@
+using System;
+
 namespace UMNAutoPackger
 {
     public class DeploymentType : PackageDefinitionBase
@@ -23,6 +25,7 @@ namespace UMNAutoPackger
         public int MaxRuntime { get; set; }
         // Might need to make this a datatype
         public string RebootBehavior { get; set; }
+        public Uri ContentLocation { get; set; }
         public DetectionMethod[] DetectionMethods { get; set; }
     }
 }
