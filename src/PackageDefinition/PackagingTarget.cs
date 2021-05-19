@@ -38,7 +38,7 @@ namespace UMNAutoPackger
         public string LocalizedDescription { get; set; }
         public string[] Keywords { get; set; }
         public bool FeaturedApp { get; set; }
-        public Uri IconLocationFile { get; set; }
+        public string IconFilename { get; set; }
         public DeploymentType[] DeploymentTypes { get; set; }
     }
 }

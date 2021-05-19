@@ -49,7 +49,7 @@ namespace UMNAutoPackger
                                     }
                                     catch (Exception e)
                                     {
-                                        //Console.WriteLine(e.InnerException);
+                                        throw e.InnerException;
                                     }
                                 }
                             }
@@ -70,12 +70,22 @@ namespace UMNAutoPackger
                 else
                 {
                     object o = propertyInfo.GetValue(this);
+
+                    // Handle Strings
                     if (null != o && propertyInfo.PropertyType == typeof(string))
                     {
                         if (o.ToString().Contains(variableName))
                         {
                             propertyInfo.SetValue(this, o.ToString().Replace(variableName, value));
                         }
+                    }
+                    // Handle Uri's
+                    else if (null != o && propertyInfo.PropertyType == typeof(Uri))
+                    {
+                        Console.WriteLine(o.ToString());
+                        Uri updatedUri = new Uri(o.ToString().Replace(variableName, value));
+                        propertyInfo.SetValue(this, updatedUri);
+                        Console.WriteLine(propertyInfo.GetValue(this).ToString());
                     }
                 }
             }
