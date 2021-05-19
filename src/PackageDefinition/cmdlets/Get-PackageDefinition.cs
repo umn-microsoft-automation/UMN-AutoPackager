@@ -1,6 +1,8 @@
+using System.Collections;
 using System.IO;
 using System.Text.Json;
 using System.Management.Automation;
+using System.Collections.Generic;
 
 namespace UMNAutoPackger
 {
@@ -27,7 +29,8 @@ namespace UMNAutoPackger
                 JsonSerializerOptions Options = new JsonSerializerOptions
                 {
                     AllowTrailingCommas = true,
-                    PropertyNameCaseInsensitive = true
+                    PropertyNameCaseInsensitive = true,
+                    IncludeFields = true
                 };
 
                 string PackageFile = File.ReadAllText(filePath);
