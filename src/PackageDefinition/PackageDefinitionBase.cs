@@ -1,11 +1,18 @@
 using System;
+using System.Collections;
 using System.Reflection;
-using System.Management.Automation;
 
 namespace UMNAutoPackger
 {
     public class PackageDefinitionBase
     {
+        public void ReplaceVariables(Hashtable variables)
+        {
+            foreach (DictionaryEntry entry in variables)
+            {
+                ReplaceVariable(entry.Key.ToString(), entry.Value.ToString());
+            }
+        }
         public void ReplaceVariable(string variableName, string value)
         {
             PropertyInfo[] propertyInfos;
@@ -13,7 +20,7 @@ namespace UMNAutoPackger
 
             foreach (PropertyInfo propertyInfo in propertyInfos)
             {
-                Console.WriteLine("Working on: " + propertyInfo.Name);
+                //Console.WriteLine("Working on: " + propertyInfo.Name);
                 if (propertyInfo.PropertyType.IsArray)
                 {
                     Array a = (Array)propertyInfo.GetValue(this);
@@ -42,7 +49,7 @@ namespace UMNAutoPackger
                                     }
                                     catch (Exception e)
                                     {
-                                        Console.WriteLine(e.InnerException);
+                                        //Console.WriteLine(e.InnerException);
                                     }
                                 }
                             }
