@@ -1,21 +1,20 @@
-using System.Collections;
 using System.IO;
 using System.Text.Json;
 using System.Management.Automation;
-using System.Collections.Generic;
 
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 {
-    [Cmdlet(VerbsCommon.Get, "PackageDefinition")]
-    [OutputType(typeof(AutoPackageDefinition))]
+    [Cmdlet(VerbsCommon.Get, "UMNPackageConfig")]
+    [OutputType(typeof(PackageConfig))]
     public class GetPackageDefinition : PSCmdlet
     {
         [Parameter(
             Mandatory = true,
             Position = 0,
             ValueFromPipeline = true,
-            ValueFromPipelineByPropertyName = true)]
-        public string filePath;
+            ValueFromPipelineByPropertyName = true
+        )]
+        public string Path;
 
         protected override void BeginProcessing()
         {
@@ -33,17 +32,16 @@ namespace UMNAutoPackger
                     IncludeFields = true
                 };
 
-                string PackageFile = File.ReadAllText(filePath);
+                string PackageFile = File.ReadAllText(Path);
                 WriteVerbose(PackageFile);
-                AutoPackageDefinition PackageDef = JsonSerializer.Deserialize<AutoPackageDefinition>(PackageFile, Options);
+                PackageConfig PackageDef = JsonSerializer.Deserialize<PackageConfig>(PackageFile, Options);
                 WriteObject(PackageDef);
             }
             catch (JsonException ex)
             {
-                ErrorRecord ER = new ErrorRecord(ex, "JsonError", ErrorCategory.NotSpecified, filePath);
+                ErrorRecord ER = new ErrorRecord(ex, "JsonError", ErrorCategory.NotSpecified, Path);
                 WriteError(ER);
             }
-
         }
 
         protected override void EndProcessing()

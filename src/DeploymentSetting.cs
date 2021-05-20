@@ -1,6 +1,6 @@
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 {
-    public class DeploymentSetting : PackageDefinitionBase
+    public class DeploymentSetting : JsonBase
     {
         public bool AllowRepairApp { get; set; }
         public string DeployAction { get; set; }
@@ -15,5 +15,8 @@ namespace UMNAutoPackger
         public int AvailStart { get; set; }
         public int AvailHour { get; set; }
         public int AvailMinute { get; set; }
+        public int DeadlineStart { get; set; }
+        public int DeadlineHour { get; set; }
+        public int DeadlineMinute { get; set; }
     }
 }

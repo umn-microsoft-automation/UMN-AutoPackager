@@ -6,8 +6,7 @@
     "versionSource": "Filename",
     "sourcePath": "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US",
     "configNotes": "General comments about this config file",
-    "owner": "UMN-AutoPackager",
-    "supportContact": "Helpdesk@something",
+    "overridePackagingTargets": true,
     "packagingTargets": [
         {
             "type": "MEMCM-Application",
@@ -18,6 +17,116 @@
             "distributionPointName": [
                 "DP-Name1",
                 "DP-Name2"
+            ],
+            "name": "{p}-{publisher}-{productName}-{version}",
+            "owner": "UMN-AutoPackager",
+            "supportContact": "Helpdesk@something",
+            "adminComments": null,
+            "optionalReference": null,
+            "adminCategories": [
+                "cat1",
+                "cat2"
+            ],
+            "datePublished": "2020-08-08",
+            "allowTSUsage": true,
+            "localizedApplicationName": "{publisher} {productName} {currentVersion}",
+            "userCategories": [
+                "cat1",
+                "cat2"
+            ],
+            "userDocumentationLink": "https://firefox-source-docs.mozilla.org/browser/index.html",
+            "userDocumentationText": "Firefox Docs",
+            "privacyLink": "https://www.mozilla.org/en-US/firefox/privacy/",
+            "localizedDescription": "",
+            "keywords": [
+                "keyword1",
+                "keyword2"
+            ],
+            "featuredApp": false,
+            "iconLocationFile": "",
+            "deploymentTypes": [
+                {
+                    "name": "x64",
+                    "installerType": "script",
+                    "adminComments": "comment",
+                    "language": "en-US",
+                    "cacheContent": false,
+                    "branchCache": false,
+                    "contentFallback": false,
+                    "onSlowNetwork": "Download",
+                    "installCMD": null,
+                    "uninstallCMD": null,
+                    "runAs32Bit": false,
+                    "installBehavior": "InstallForSystem",
+                    "logonRequired": "WhetherOrNotUserLoggedOn",
+                    "userInteraction": "Hidden",
+                    "estimatedRuntime": 5,
+                    "maxRuntime": 15,
+                    "rebootBehavior": "BasedOnExitCode",
+                    "ContentLocation": "\\\\drive.somewhere\\configmgr\\Mozilla\\Firefox",
+                    "detectionMethods": [
+                        {
+                            "type": "Directory",
+                            "directoryName": "dirName",
+                            "path": "pathToDirLocation",
+                            "is64Bit": false,
+                            "existence": true
+                        },
+                        {
+                            "type": "Directory",
+                            "directoryName": "Mozilla Firefox",
+                            "expectedValue": "2020-11-30T08:00:00Z",
+                            "expressionOperator": "GreaterThan",
+                            "path": "C:\\Program Files\\",
+                            "propertyType": "DateModified",
+                            "value": true
+                        },
+                        {
+                            "type": "File",
+                            "fileName": "fileName",
+                            "path": "pathToFile",
+                            "is64Bit": false,
+                            "existence": true
+                        },
+                        {
+                            "type": "File",
+                            "expectedValue": "87.0.0.7747",
+                            "expressionOperator": "GreaterEquals",
+                            "fileName": "Firefox.exe",
+                            "path": "C:\\Program Files\\Mozilla\\",
+                            "propertyType": "Version",
+                            "value": true
+                        },
+                        {
+                            "type": "RegistryKeyValue",
+                            "expectedValue": "87.0",
+                            "expressionOperator": "GreaterEquals",
+                            "hive": "LocalMachine",
+                            "keyName": "SOFTWARE\\mozilla.org\\Mozilla",
+                            "propertyType": "Version",
+                            "value": true,
+                            "valueName": "CurrentVersion"
+                        },
+                        {
+                            "type": "RegistryKey",
+                            "existence": false,
+                            "hive": "LocalMachine",
+                            "is64Bit": false,
+                            "keyName": "Mozilla"
+                        },
+                        {
+                            "type": "WindowsInstaller",
+                            "existence": true,
+                            "expectedValue": "",
+                            "expressionOperator": "",
+                            "productCode": "4F7840A9-9816-45E2-9F6C-F7067A8BC0FD",
+                            "propertyType": null
+                        }
+                    ]
+                },
+                {
+                    "name": "x86"
+                }
             ],
             "collectionTargets": [
                 {
@@ -166,114 +275,6 @@
                     "name": "UWIDE-Updates-Mozilla Firefox-Continuous",
                     "limitingCollectionName": "Test Systems",
                     "refreshtype": "Continuous"
-                }
-            ],
-            "name": "{baseAppName}-{publisher}-{productName}-{version}",
-            "adminComments": null,
-            "optionalReference": null,
-            "adminCategories": [
-                "cat1",
-                "cat2"
-            ],
-            "datePublished": "2020-08-08",
-            "allowTSUsage": true,
-            "localizedApplicationName": "{publisher} {productName} {currentVersion}",
-            "userCategories": [
-                "cat1",
-                "cat2"
-            ],
-            "userDocumentationLink": "https://firefox-source-docs.mozilla.org/browser/index.html",
-            "userDocumentationText": "Firefox Docs",
-            "privacyLink": "https://www.mozilla.org/en-US/firefox/privacy/",
-            "localizedDescription": "",
-            "keywords": [
-                "keyword1",
-                "keyword2"
-            ],
-            "featuredApp": false,
-            "iconLocationFile": "",
-            "deploymentTypes": [
-                {
-                    "name": "x64",
-                    "installerType": "script",
-                    "adminComments": "comment",
-                    "language": "en-US",
-                    "cacheContent": false,
-                    "branchCache": false,
-                    "contentFallback": false,
-                    "onSlowNetwork": "Download",
-                    "installCMD": null,
-                    "uninstallCMD": null,
-                    "runAs32Bit": false,
-                    "installBehavior": "InstallForSystem",
-                    "logonRequired": "WhetherOrNotUserLoggedOn",
-                    "userInteraction": "Hidden",
-                    "estimatedRuntime": 5,
-                    "maxRuntime": 15,
-                    "rebootBehavior": "BasedOnExitCode",
-                    "ContentLocation": "\\\\drive.somewhere\\configmgr\\Mozilla\\Firefox",
-                    "detectionMethods": [
-                        {
-                            "type": "Directory",
-                            "directoryName": "dirName",
-                            "path": "pathToDirLocation",
-                            "is64Bit": false,
-                            "existence": true
-                        },
-                        {
-                            "type": "Directory",
-                            "directoryName": "Mozilla Firefox",
-                            "expectedValue": "2020-11-30T08:00:00Z",
-                            "expressionOperator": "GreaterThan",
-                            "path": "C:\\Program Files\\",
-                            "propertyType": "DateModified",
-                            "value": true
-                        },
-                        {
-                            "type": "File",
-                            "fileName": "fileName",
-                            "path": "pathToFile",
-                            "is64Bit": false,
-                            "existence": true
-                        },
-                        {
-                            "type": "File",
-                            "expectedValue": "87.0.0.7747",
-                            "expressionOperator": "GreaterEquals",
-                            "fileName": "Firefox.exe",
-                            "path": "C:\\Program Files\\Mozilla\\",
-                            "propertyType": "Version",
-                            "value": true
-                        },
-                        {
-                            "type": "RegistryKeyValue",
-                            "expectedValue": "87.0",
-                            "expressionOperator": "GreaterEquals",
-                            "hive": "LocalMachine",
-                            "keyName": "SOFTWARE\\mozilla.org\\Mozilla",
-                            "propertyType": "Version",
-                            "value": true,
-                            "valueName": "CurrentVersion"
-                        },
-                        {
-                            "type": "RegistryKey",
-                            "existence": false,
-                            "hive": "LocalMachine",
-                            "is64Bit": false,
-                            "keyName": "Mozilla"
-                        },
-                        {
-                            "type": "WindowsInstaller",
-                            "existence": true,
-                            "expectedValue": "",
-                            "expressionOperator": "",
-                            "productCode": "4F7840A9-9816-45E2-9F6C-F7067A8BC0FD",
-                            "propertyType": null
-                        }
-                    ]
-                },
-                {
-                    "name": "x86"
                 }
             ]
         }

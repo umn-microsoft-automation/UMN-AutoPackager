@@ -1,8 +1,8 @@
 using System;
 
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 {
-    public class AutoPackageDefinition : PackageDefinitionBase
+    public class PackageConfig : JsonBase
     {
         public string Publisher { get; set; }
         public string ProductName { get; set; }
@@ -11,8 +11,7 @@ namespace UMNAutoPackger
         public string VersionSource { get; set; }
         public Uri SourcePath { get; set; }
         public string ConfigNotes { get; set; }
-        public string Owner { get; set; }
-        public string SupportContact { get; set; }
+        public bool OverridePackagingTarget { get; set; }
         public PackagingTarget[] PackagingTargets { get; set; }
     }
 }

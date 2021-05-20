@@ -2,11 +2,11 @@ using System.IO;
 using System.Text.Json;
 using System.Management.Automation;
 
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 {
-    [Cmdlet(VerbsCommon.Set, "PackageDefinition")]
+    [Cmdlet(VerbsCommon.Set, "UMNGlobalConfig")]
     [OutputType(typeof(FileInfo))]
-    public class SetPackageDefinition : PSCmdlet
+    public class SetUMNGlobalConfig : PSCmdlet
     {
         [Parameter(
             Mandatory = true,
@@ -14,7 +14,7 @@ namespace UMNAutoPackger
             ValueFromPipeline = true,
             ValueFromPipelineByPropertyName = true
         )]
-        public string filePath;
+        public string Path;
 
         [Parameter(
             Mandatory = true,
@@ -22,7 +22,7 @@ namespace UMNAutoPackger
             ValueFromPipeline = true,
             ValueFromPipelineByPropertyName = true
         )]
-        public AutoPackageDefinition packageDefinition;
+        public GlobalConfig GlobalConfig;
 
         protected override void BeginProcessing()
         {
@@ -35,11 +35,13 @@ namespace UMNAutoPackger
             {
                 WriteIndented = true,
                 IgnoreNullValues = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                IncludeFields = true
             };
-            string JsonContent = JsonSerializer.Serialize<AutoPackageDefinition>(packageDefinition, Options);
-            File.WriteAllText(filePath, JsonContent);
-            FileInfo JsonFile = new FileInfo(filePath);
+
+            string JsonContent = JsonSerializer.Serialize<GlobalConfig>(GlobalConfig, Options);
+            File.WriteAllText(Path, JsonContent);
+            FileInfo JsonFile = new FileInfo(Path);
             WriteVerbose(JsonContent);
             WriteObject(JsonFile);
         }

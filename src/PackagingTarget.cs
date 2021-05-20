@@ -1,31 +1,38 @@
 using System;
 
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 {
-    public class PackagingTarget : PackageDefinitionBase
+    public class PackagingTarget : JsonBase
     {
         public string Type { get; set; }
-        public string[] DistributionPointGroupName { get; set; }
-        public string[] DistributionPointName { get; set; }
+        public string Site { get; set; }
+        public string SiteCode { get; set; }
+        public Uri DownloadLocationPath { get; set; }
+        public Uri ApplicationContentPath { get; set; }
+        public string PreAppName { get; set; }
+        public string PostAppName { get; set; }
+        public DeploymentPoint DeploymentPoints { get; set; }
         public CollectionTarget[] CollectionTargets { get; set; }
         public string Name { get; set; }
+        public string Owner { get; set; }
+        public string SupportContact { get; set; }
         public string AdminComments { get; set; }
         public string OptionalReference { get; set; }
         public string[] AdminCategories { get; set; }
 
         // We need a private variable for the public variable.
-        private DateTime datePublished;
+        private DateTime _datePublished;
         public String DatePublished
         {
             get
             {
-                return datePublished.ToString();
+                return _datePublished.ToString();
             }
             set
             {
                 if (value == "{currentDate}")
                 {
-                    datePublished = DateTime.Now;
+                    _datePublished = DateTime.Now;
                 }
             }
         }

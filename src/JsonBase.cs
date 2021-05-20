@@ -2,9 +2,9 @@ using System;
 using System.Collections;
 using System.Reflection;
 
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 {
-    public class PackageDefinitionBase
+    public class JsonBase
     {
         public void ReplaceVariables(Hashtable variables)
         {

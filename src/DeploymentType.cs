@@ -1,8 +1,8 @@
 using System;
 
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 {
-    public class DeploymentType : PackageDefinitionBase
+    public class DeploymentType : JsonBase
     {
         public string Name { get; set; }
         public string InstallerType { get; set; }

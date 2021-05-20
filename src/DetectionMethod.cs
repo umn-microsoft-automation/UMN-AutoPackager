@@ -1,7 +1,7 @@
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 
 {
-    public class DetectionMethod : PackageDefinitionBase
+    public class DetectionMethod : JsonBase
     {
         // Might need to make this a datatype
         public string Type { get; set; }

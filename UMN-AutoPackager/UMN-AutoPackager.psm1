@@ -1,9 +1,10 @@
 $Public = @( Get-ChildItem -Path $PSScriptRoot\public\*.ps1 -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\private\*.ps1 -ErrorAction SilentlyContinue )
 
+Add-Type -Path .\bin\UMN-AutoPackager.dll
+
 # Global Config Path
 $GlobalConfigPath = "$($env:ProgramData)\UMN\AutoPackager\GlobalConfig.json"
-Export-ModuleMember -Variable GlobalConfigPath
 
 foreach ($Import in @($Public + $Private)) {
     try {
@@ -16,12 +17,13 @@ foreach ($Import in @($Public + $Private)) {
 
 if (Test-Path -Path $GlobalConfigPath) {
     $GlobalConfig = Get-UMNGlobalConfig -Path $GlobalConfigPath
-    
-    Export-ModuleMember -Variable GlobalConfig
 }
 else {
     Write-Error -Message "Could not find a global config at $GlobalConfigPath.`nRun Set-UMNGlobalConfig using the `$GlobalConfigPath variable."
 }
+
+
+Export-ModuleMember -Variable GlobalConfig, GlobalConfigPath
 
 # Export only the powershell functions that are public
 Export-ModuleMember -Function $Public.BaseName
