@@ -10,14 +10,16 @@
     "packagingTargets": [
         {
             "type": "MEMCM-Application",
-            "distributionPointGroupName": [
-                "DP-Group1",
-                "DP-Group2"
-            ],
-            "distributionPointName": [
-                "DP-Name1",
-                "DP-Name2"
-            ],
+            "deploymentPoints": {
+                "dpGroupNames": [
+                    "DP-Group1",
+                    "DP-Group2"
+                ],
+                "dpNames": [
+                    "DP-Name1",
+                    "DP-Name2"
+                ]
+            },
             "name": "{p}-{publisher}-{productName}-{version}",
             "owner": "UMN-AutoPackager",
             "supportContact": "Helpdesk@something",
@@ -63,7 +65,7 @@
                     "estimatedRuntime": 5,
                     "maxRuntime": 15,
                     "rebootBehavior": "BasedOnExitCode",
-                    "ContentLocation": "\\\\drive.somewhere\\configmgr\\Mozilla\\Firefox",
+                    "ContentLocation": "\\\\drive.somewhere\\configmgr\\{publisher}\\{productName}",
                     "detectionMethods": [
                         {
                             "type": "Directory",
