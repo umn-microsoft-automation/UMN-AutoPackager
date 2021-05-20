@@ -9,4 +9,8 @@ Get-ChildItem -Path "$PSScriptRoot\..\output\$Module" | Remove-Item -Force -Recu
 dotnet build $PSScriptRoot\..\src -o $PSScriptRoot\..\output\$Module\bin
 Copy-Item "$PSScriptRoot\..\$Module\*" "$PSScriptRoot\..\output\$Module" -Recurse -Force
 
-Start-Process -FilePath "pwsh.exe" -WorkingDirectory "$PSScriptRoot\..\output\$Module"
+$ArgList = @(
+    "-NoExit -Command ipmo .\UMN-AutoPackager.psd1"
+)
+
+Start-Process -FilePath "pwsh.exe" -WorkingDirectory "$PSScriptRoot\..\output\$Module" -ArgumentList $ArgList
