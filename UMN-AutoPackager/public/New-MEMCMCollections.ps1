@@ -35,6 +35,7 @@ function New-MEMCMCollections {
         Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
     }
     process {
+# Fix the logic here to use the new json structure
         foreach ($ConfigMgrObject in ($GlobalConfig.ConfigMgr)) {
             Write-Verbose -Message "Processing $($ConfigMgrObject.site) Site..."
             $SiteCode = $ConfigMgrObject.SiteCode
@@ -49,6 +50,7 @@ function New-MEMCMCollections {
             }
             Push-Location
             Set-Location -Path "$SiteCode`:\"
+# Check the packageconfig value overridePackagingTargets to determine where to get the data for the arguements
             foreach ($PkgObject in $PackageDefinition) {
                 Write-Verbose -Message "Processing the package definition $($pkgObject.publisher) $($pkgObject.productname)"
                 foreach ($collection in $PkgObject.CollectionTargets) {

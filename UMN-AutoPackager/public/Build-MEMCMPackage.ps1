@@ -41,6 +41,7 @@ function Build-MEMCMPackage {
         Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
     }
     process {
+# Fix the foreach loop for GlobalConfig. Packaging targets is the new loop. 
         foreach ($ConfigMgrObject in ($GlobalConfig.ConfigMgr)) {
             Write-Verbose -Message "Processing $($ConfigMgrObject.site) Site..."
             $SiteCode = $ConfigMgrObject.SiteCode
@@ -55,6 +56,7 @@ function Build-MEMCMPackage {
             }
             Push-Location
             Set-Location -Path "$SiteCode`:\"
+# remove the name build stuff. That will go into the set command logic.
             foreach ($PkgObject in $PackageDefinition) {
                 Write-Verbose -Message "Processing the package definition for $($pkgObject.publisher) $($pkgObject.productname)"
                 if ($PkgObject.PackagingTargets.Type -eq "MEMCM-Application") {
@@ -97,6 +99,7 @@ function Build-MEMCMPackage {
                         $NewLocalAppName = $LocalAppName
                     }
                     Write-Verbose -Message "Local Application name is $NewLocalAppName"
+# Review the logic for the application arguments
                     # Building hashtable with all the values to use in the New-CMApplication function
                     $ApplicationArguments = @{
                         Name                 = $NewAppName
@@ -134,6 +137,7 @@ function Build-MEMCMPackage {
                         Write-Error $Error[0]
                         Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
+# Review the logic for the deployment type arguments
                     # Building hashtable with all values to us in the DeploymentType creation functions
                     foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
                         $DepName = $deptype.Name
