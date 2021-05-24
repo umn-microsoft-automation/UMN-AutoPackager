@@ -32,6 +32,8 @@ namespace UMNAutoPackager
                     IncludeFields = true
                 };
 
+                Options.Converters.Add(new DateTimeConverter());
+
                 string PackageFile = File.ReadAllText(Path);
                 WriteVerbose(PackageFile);
                 PackageConfig PackageDef = JsonSerializer.Deserialize<PackageConfig>(PackageFile, Options);

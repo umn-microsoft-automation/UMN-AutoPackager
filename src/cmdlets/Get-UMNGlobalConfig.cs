@@ -32,6 +32,8 @@ namespace UMNAutoPackager
                     IncludeFields = true
                 };
 
+                Options.Converters.Add(new DateTimeConverter());
+
                 string GlobalConfigFile = File.ReadAllText(Path);
                 WriteVerbose(GlobalConfigFile);
                 GlobalConfig GlobalCfg = JsonSerializer.Deserialize<GlobalConfig>(GlobalConfigFile, Options);

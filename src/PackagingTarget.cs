@@ -19,23 +19,7 @@ namespace UMNAutoPackager
         public string AdminComments { get; set; }
         public string OptionalReference { get; set; }
         public string[] AdminCategories { get; set; }
-
-        // We need a private variable for the public variable.
-        private DateTime _datePublished;
-        public String DatePublished
-        {
-            get
-            {
-                return _datePublished.ToString();
-            }
-            set
-            {
-                if (value == "{currentDate}")
-                {
-                    _datePublished = DateTime.Now;
-                }
-            }
-        }
+        public DateTime DatePublished { get; set; }
         public bool AllowTSUsage { get; set; }
         public string LocalizedApplicationName { get; set; }
         public string[] UserCategories { get; set; }
