@@ -41,8 +41,7 @@ function Build-MEMCMPackage {
         Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
     }
     process {
-# Fix the foreach loop for GlobalConfig. Packaging targets is the new loop. 
-        foreach ($ConfigMgrObject in ($GlobalConfig.ConfigMgr)) {
+        foreach ($ConfigMgrObject in ($GlobalConfig.packagingTargets)) {
             Write-Verbose -Message "Processing $($ConfigMgrObject.site) Site..."
             $SiteCode = $ConfigMgrObject.SiteCode
             try {
@@ -56,66 +55,26 @@ function Build-MEMCMPackage {
             }
             Push-Location
             Set-Location -Path "$SiteCode`:\"
-# remove the name build stuff. That will go into the set command logic.
             foreach ($PkgObject in $PackageDefinition) {
                 Write-Verbose -Message "Processing the package definition for $($pkgObject.publisher) $($pkgObject.productname)"
                 if ($PkgObject.PackagingTargets.Type -eq "MEMCM-Application") {
-                    $Keys = $PkgObject | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
-                    # Building out the Application Name based on the pattern if used otherwise using the specific name in the field
-                    $AppName = $PkgObject.packagingTargets.Name
-                    if ($AppName -match '}-') {
-                        $BuildName = $AppName -split '-' -replace '[{}]', ''
-                        foreach ($item in $BuildName) {
-                            if ($Keys -contains $item) {
-                                $n = $PkgObject.$item
-                                $NewAppName += "$n "
-                            }
-                        }
-                        $NewAppName = $NewAppName -replace (' ', "-")
-                        $NewAppName = $NewAppName -replace ".$"
-                    }
-                    else {
-                        $NewAppName = $AppName
-                    }
-                    # Checking if a baseapp value exists for the naming convention
-                    $baseAppName = $ConfigMgrObject.baseAppName
-                    if (-not [string]::IsNullOrEmpty($baseAppName)) {
-                        $NewAppName = $NewAppName.Insert(0, "$baseAppName-")
-                    }
-                    Write-Verbose -Message "Application name is $NewAppName"
-                    # Building the localized application name
-                    $LocalAppName = $PkgObject.packagingTargets.localizedApplicationName
-                    if ($LocalAppName -match '} ') {
-                        $LocalBuildName = $LocalAppName -split ' ' -replace '[{}]', ''
-                        foreach ($localitem in $LocalBuildName) {
-                            if ($Keys -contains $localitem) {
-                                $n = $PkgObject.$localitem
-                                $NewLocalAppName += "$n "
-                            }
-                        }
-                    }
-                    else {
-                        Write-verbose -Message "No pattern using value of packagingTargets.localizedApplicationName"
-                        $NewLocalAppName = $LocalAppName
-                    }
-                    Write-Verbose -Message "Local Application name is $NewLocalAppName"
 # Review the logic for the application arguments
                     # Building hashtable with all the values to use in the New-CMApplication function
                     $ApplicationArguments = @{
-                        Name                 = $NewAppName
+                        Name                 = $PkgObject.packagingTargets.Name
                         Description          = $PkgObject.Description
                         Publisher            = $PkgObject.Publisher
                         SoftwareVersion      = $PkgObject.currentVersion
                         ReleaseDate          = $PkgObject.packagingTargets.datePublished
-                        AddOwner             = $PkgObject.owner
+                        AddOwner             = $PkgObject.packagingTargets.owner
                         AutoInstall          = $PkgObject.packagingTargets.allowTSUsage
                         IconLocationFile     = $PkgObject.packagingTargets.IconLocationFile
                         Keywords             = $PkgObject.packagingTargets.Keywords
                         Linktext             = $PkgObject.packagingTargets.userDocumentationText
                         LocalizedDescription = $PkgObject.packagingTargets.localizedDescription
-                        LocalizedName        = $NewLocalAppName
+                        LocalizedName        = $PkgObject.packagingTargets.localizedApplicationName
                         PrivacyURL           = $PkgObject.packagingTargets.privacyLink
-                        SupportContact       = $PkgObject.supportContact
+                        SupportContact       = $PkgObject.packagingTargets.supportContact
                         UserDocumentation    = $PkgObject.packagingTargets.userDocumentationLink
                         ErrorAction          = "Stop"
                     }
@@ -137,19 +96,18 @@ function Build-MEMCMPackage {
                         Write-Error $Error[0]
                         Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
-# Review the logic for the deployment type arguments
                     # Building hashtable with all values to us in the DeploymentType creation functions
                     foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
-                        $DepName = $deptype.Name
+                        # $DepName = $deptype.Name
                         $DeploymentTypeArguments = @{
                             AddDetectionClause        = ""
                             AddLanguage               = $depType.Language
-                            ApplicationName           = $NewAppName
+                            ApplicationName           = $PkgObject.packagingTargets.Name
                             CacheContent              = $deptype.cacheContent
                             Comment                   = $depType.adminComments
                             ContentFallback           = $deptype.contentFallback
                             ContentLocation           = $depType.ContentLocation
-                            DeploymentTypeName        = $NewAppName + " $DepName"
+                            DeploymentTypeName        = $PkgObject.packagingTargets.Name + " $($depType.Name)"
                             EnableBranchCache         = $deptype.branchCache
                             EstimatedRuntimeMins      = $deptype.estimatedRuntime
                             Force32Bit                = $deptype.runAs32Bit
@@ -193,6 +151,7 @@ function Build-MEMCMPackage {
                                 PropertyType       = $detectionMethod.PropertyType
                                 Value              = $detectionMethod.Value
                                 ValueName          = $detectionMethod.ValueName
+                                ErrorAction        = "Stop"
                             }
                             # Removing null or empty values from the hashtable
                             $DetClauselist = New-Object System.Collections.ArrayList
@@ -293,7 +252,7 @@ function Build-MEMCMPackage {
                                 }
                             }
                         }
-                    }
+                    }#foreach $depType
                     # Distributing the Application content
                     if ($PkgObject.DistributionPointName) {
                         Write-Verbose -Message "Distributing content to a set of DP names"
@@ -316,10 +275,10 @@ function Build-MEMCMPackage {
                         }
                     }
                 }
-            }
+            }#foreach $PkgObject
             Pop-Location
             $ConfigMgrDrive | Remove-PSDrive
-        }
+        }#foreach $ConfigMgrObject
     }
     end {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
