@@ -18,7 +18,7 @@ namespace UMNAutoPackager
         public bool RunAs32Bit { get; set; }
         // Might need to make this a datatype
         public string InstallBehavior { get; set; }
-        public bool LogonRequired { get; set; }
+        public string LogonRequired { get; set; }
         // Might need to make this a datatype
         public string UserInteraction { get; set; }
         public int EstimatedRuntime { get; set; }
