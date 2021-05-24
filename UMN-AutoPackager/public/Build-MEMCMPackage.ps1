@@ -58,7 +58,6 @@ function Build-MEMCMPackage {
             foreach ($PkgObject in $PackageDefinition) {
                 Write-Verbose -Message "Processing the package definition for $($pkgObject.publisher) $($pkgObject.productname)"
                 if ($PkgObject.PackagingTargets.Type -eq "MEMCM-Application") {
-# Review the logic for the application arguments
                     # Building hashtable with all the values to use in the New-CMApplication function
                     $ApplicationArguments = @{
                         Name                 = $PkgObject.packagingTargets.Name
@@ -136,7 +135,7 @@ function Build-MEMCMPackage {
                         }
                         # Building hashtable with all the values to use with New or Set-CMDetectionClause functions
                         foreach ($detectionMethod in $depType.detectionMethods) {
-                            Write-Verbose -Message "Processing the detection method"
+                            Write-Verbose -Message "Processing the detection method: $($detectionMethod.type)"
                             $DetectionClauseArguments = @{
                                 DirectoryName      = $detectionMethod.DirectoryName
                                 Existence          = $detectionMethod.Existence
@@ -163,6 +162,7 @@ function Build-MEMCMPackage {
                             foreach ($item in $DetClauselist) {
                                 $DetectionClauseArguments.Remove($item)
                             }
+                            Write-Output $DetectionClauseArguments
                             # Check the application deployment types, run the proper command to create the DetectionClause variable, add to the hashtable, and create the deployment type
                             if ($null -eq $(Get-CMDeploymentType -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -ApplicationName $DeploymentTypeArguments.ApplicationName)) {
                                 Write-Verbose -Message "Deployment Type not found in $($DeploymentTypeArguments.ApplicationName)"
