@@ -29,7 +29,8 @@ namespace UMNAutoPackager
                 {
                     AllowTrailingCommas = true,
                     PropertyNameCaseInsensitive = true,
-                    IncludeFields = true
+                    IncludeFields = true,
+                    IgnoreNullValues = true
                 };
 
                 Options.Converters.Add(new DateTimeConverter());
