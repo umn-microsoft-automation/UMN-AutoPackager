@@ -17,6 +17,6 @@ namespace UMNAutoPackager
         // Might need to make this a datatype
         public string ExpressionOperator { get; set; }
         public string Hive { get; set; }
-        public bool value { get; set; }
+        public bool Value { get; set; }
     }
 }
