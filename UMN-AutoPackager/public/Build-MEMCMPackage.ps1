@@ -105,7 +105,7 @@ function Build-MEMCMPackage {
                             CacheContent              = $deptype.cacheContent
                             Comment                   = $depType.adminComments
                             ContentFallback           = $deptype.contentFallback
-                            ContentLocation           = $depType.ContentLocation
+                            ContentLocation           = $depType.ContentLocation.LocalPath
                             DeploymentTypeName        = $PkgObject.packagingTargets.Name + " $($depType.Name)"
                             EnableBranchCache         = $deptype.branchCache
                             EstimatedRuntimeMins      = $deptype.estimatedRuntime
@@ -150,7 +150,6 @@ function Build-MEMCMPackage {
                                 PropertyType       = $detectionMethod.PropertyType
                                 Value              = $detectionMethod.Value
                                 ValueName          = $detectionMethod.ValueName
-                                ErrorAction        = "Stop"
                             }
                             # Removing null or empty values from the hashtable
                             $DetClauselist = New-Object System.Collections.ArrayList
@@ -162,7 +161,7 @@ function Build-MEMCMPackage {
                             foreach ($item in $DetClauselist) {
                                 $DetectionClauseArguments.Remove($item)
                             }
-                            Write-Output $DetectionClauseArguments
+                            Write-Output $detectionclausearguments
                             # Check the application deployment types, run the proper command to create the DetectionClause variable, add to the hashtable, and create the deployment type
                             if ($null -eq $(Get-CMDeploymentType -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -ApplicationName $DeploymentTypeArguments.ApplicationName)) {
                                 Write-Verbose -Message "Deployment Type not found in $($DeploymentTypeArguments.ApplicationName)"
