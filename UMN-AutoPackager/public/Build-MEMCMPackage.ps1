@@ -150,6 +150,7 @@ function Build-MEMCMPackage {
                                 PropertyType       = $detectionMethod.PropertyType
                                 Value              = $detectionMethod.Value
                                 ValueName          = $detectionMethod.ValueName
+                                ErrorAction        = "Stop"
                             }
                             # Removing null or empty values from the hashtable
                             $DetClauselist = New-Object System.Collections.ArrayList
@@ -161,7 +162,6 @@ function Build-MEMCMPackage {
                             foreach ($item in $DetClauselist) {
                                 $DetectionClauseArguments.Remove($item)
                             }
-                            Write-Output $detectionclausearguments
                             # Check the application deployment types, run the proper command to create the DetectionClause variable, add to the hashtable, and create the deployment type
                             if ($null -eq $(Get-CMDeploymentType -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -ApplicationName $DeploymentTypeArguments.ApplicationName)) {
                                 Write-Verbose -Message "Deployment Type not found in $($DeploymentTypeArguments.ApplicationName)"
@@ -237,7 +237,6 @@ function Build-MEMCMPackage {
                                         Write-Error $Error[0]
                                         Write-Warning -Message "Error: $($_.Exception.Message)"
                                     }
-                                    #Set-CMScriptDeploymentType -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
                                 }
                                 elseif ($depType.installerType -eq "Msi") {
                                     Write-Verbose -Message "Adding MSI Deployment Type - Deployment Type Name Exists"
@@ -253,25 +252,51 @@ function Build-MEMCMPackage {
                         }
                     }#foreach $depType
                     # Distributing the Application content
-                    if ($PkgObject.DistributionPointName) {
-                        Write-Verbose -Message "Distributing content to a set of DP names"
+                    if ($PkgObject.packagingTargets.deploymentPoints.dpNames -and $pkgObject.overridePackagingTargets -eq $true) {
+                        Write-Verbose -Message "Distributing content to a set of DP names from PackageConfig"
                         try {
-                            Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointName $PkgObject.DistributionPointName
+                             Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointName $PkgObject.packagingTargets.deploymentPoints.dpNames -ErrorAction Stop
                         }
                         catch {
                             Write-Error $Error[0]
                             Write-Warning -Message "Error: $($_.Exception.Message)"
                         }
                     }
-                    if ($PkgObject.DistributionPointGroupName) {
-                        Write-Verbose -Message "Distributing content to a set of DP groups"
+                    elseif ($ConfigMgrObject.deploymentPoints.dpNames) {
+                        Write-Verbose -Message "Distributing content to a set of DP names from GlobalConfig"
                         try {
-                            Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointGroupName $pkgObject.DistributionPointGroupName
+                             Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointName $ConfigMgrObject.deploymentPoints.dpNames -ErrorAction Stop
                         }
                         catch {
                             Write-Error $Error[0]
                             Write-Warning -Message "Error: $($_.Exception.Message)"
                         }
+                    }
+                    else {
+                        Write-Verbose -Message "No DP Names listed"
+                    }
+                    if ($PkgObject.packagingTargets.deploymentPoints.dpNames -and $pkgObject.overridePackagingTargets -eq $true) {
+                        Write-Verbose -Message "Distributing content to a set of DP groups from PackageConfig"
+                        try {
+                            Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointGroupName $pkgObject.packagingTargets.deploymentPoints.dpGroupNames -ErrorAction Stop
+                        }
+                        catch {
+                            Write-Error $Error[0]
+                            Write-Warning -Message "Error: $($_.Exception.Message)"
+                        }
+                    }
+                    elseif ($ConfigMgrObject.deploymentPoints.dpGroupNames) {
+                        Write-Verbose -Message "Distributing content to a set of DP groups from GlobalConfig"
+                        try {
+                            Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointGroupName $ConfigMgrObject.deploymentPoints.dpGroupNames -ErrorAction Stop
+                        }
+                        catch {
+                            Write-Error $Error[0]
+                            Write-Warning -Message "Error: $($_.Exception.Message)"
+                        }
+                    }
+                    else {
+                        Write-Verbose -Message "No DP Group Names listed"
                     }
                 }
             }#foreach $PkgObject
