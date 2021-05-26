@@ -19,5 +19,6 @@ namespace UMNAutoPackager
         public string Hive { get; set; }
         public bool? Value { get; set; }
         public string ValueName { get; set; }
+        public string ProductCode { get; set; }
     }
 }
