@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Encodings.Web;
 using System.Management.Automation;
 
 namespace UMNAutoPackager
@@ -36,7 +37,8 @@ namespace UMNAutoPackager
                 WriteIndented = true,
                 IgnoreNullValues = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                IncludeFields = true
+                IncludeFields = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
 
             string JsonContent = JsonSerializer.Serialize<GlobalConfig>(GlobalConfig, Options);
