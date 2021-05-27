@@ -50,16 +50,14 @@ function New-MEMCMCollections {
             Push-Location
             Set-Location -Path "$SiteCode`:\"
             foreach ($PkgObject in $PackageDefinition) {
-                # fix logic to use the new json logic
                 if ($PkgObject.overridePackagingTargets -eq $True) {
                     Write-Verbose -Message "Processing the package definition in package config: $($pkgObject.publisher) $($pkgObject.productname)"
-                    foreach ($collection in $PkgObject.CollectionTargets) {
+                    foreach ($collection in $PkgObject.packagingTargets.collectionTargets) {
                         if (($collection.type -eq "MEMCM-Collection") -and (-not (Get-CMCollection -Name $collection.Name))) {
-                            # Collection does not exist, building the collection.
                             Write-Verbose -Message "Building collection $($collection.name) for ConfigMgr"
                             $CollectionArguments = @{
                                 Name                   = $collection.Name
-                                LimitingCollectionName = $collection.LimitingCollectionName
+                                LimitingCollectionName = $collection.limitingCollectionName
                                 RefreshType            = $collection.RefreshType
                                 RefreshSchedule        = ""
                             }
@@ -123,10 +121,9 @@ function New-MEMCMCollections {
                         }
                     }#foreach override true: $CollectionTargets
                 }
-                # Fix the logic in this section to use the global config
                 elseif ($PkgObject.overridePackagingTargets -eq $false) {
                     Write-Verbose -Message "Processing the package definition in global config: $($pkgObject.publisher) $($pkgObject.productname)"
-                    foreach ($collection in $PkgObject.CollectionTargets) {
+                    foreach ($collection in $ConfigMgrObject.CollectionTargets) {
                         if (($collection.type -eq "MEMCM-Collection") -and (-not (Get-CMCollection -Name $collection.Name))) {
                             # Collection does not exist, building the collection.
                             Write-Verbose -Message "Building collection $($collection.name) for ConfigMgr"
