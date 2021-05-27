@@ -33,6 +33,7 @@ function New-MEMCMCollections {
     begin {
         Write-Verbose -Message "Starting $($myinvocation.mycommand)"
         Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
+        write-output "$(get-module)"
     }
     process {
         foreach ($ConfigMgrObject in ($GlobalConfig.packagingTargets)) {
@@ -93,6 +94,7 @@ function New-MEMCMCollections {
                                     $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -RecurCount $collection.RecurCount
                                     $CollectionArguments.set_item("RefreshSchedule", $sched)
                                 }
+                                Write-Output $collectionarguments
                                 # Create the periodic collection
                                 Write-Verbose -Message "Creating the collection: $($CollectionArguments.Name)"
                                 try {
