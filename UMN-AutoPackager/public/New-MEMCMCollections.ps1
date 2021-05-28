@@ -33,7 +33,6 @@ function New-MEMCMCollections {
     begin {
         Write-Verbose -Message "Starting $($myinvocation.mycommand)"
         Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
-        write-output "$(get-module)"
     }
     process {
         foreach ($ConfigMgrObject in ($GlobalConfig.packagingTargets)) {
@@ -60,11 +59,12 @@ function New-MEMCMCollections {
                                 Name                   = $collection.Name
                                 LimitingCollectionName = $collection.limitingCollectionName
                                 RefreshType            = $collection.RefreshType
+                                CollectionType         = "Device"
                                 RefreshSchedule        = ""
                             }
                             # RefreshType is Periodic or Both. Build a schedule and create the collection.
                             if ($CollectionArguments.RefreshType -eq "Periodic" -or $CollectionArguments.RefreshType -eq "Both") {
-                                Write-Verbose -Message "Collection is using a Periodic schedule"
+                                Write-Verbose -Message "Collection is using a Periodic or Both schedule"
                                 $startdate = Get-Date -month $collection.month -day $collection.day -year $collection.year -hour $collection.hour -minute $collection.minute
                                 if ($collection.RecurInterval -eq "Days" -or $collection.RecurInterval -eq "Hours" -or $collection.RecurInterval -eq "Minutes") {
                                     Write-Verbose -Message "Periodic is using days, hours, or minutes"
@@ -94,11 +94,16 @@ function New-MEMCMCollections {
                                     $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -RecurCount $collection.RecurCount
                                     $CollectionArguments.set_item("RefreshSchedule", $sched)
                                 }
-                                Write-Output $collectionarguments
+# Figure out if this else statement is needed
+# Figure out the BOTH switch logic to make sure the collection gets set right
+# Fix the next section to match this one with the changes made if any
+                                else {
+                                    Write-Verbose -Message "No periodic matches found"
+                                }
                                 # Create the periodic collection
                                 Write-Verbose -Message "Creating the collection: $($CollectionArguments.Name)"
                                 try {
-                                    New-CMDeviceCollection @CollectionArguments
+                                    New-CMCollection @CollectionArguments
                                 }
                                 catch {
                                     Write-Error $Error[0]
@@ -110,7 +115,7 @@ function New-MEMCMCollections {
                                 Write-Verbose -Message "Not periodic creating the collection: $($CollectionArguments.Name)"
                                 $CollectionArguments.Remove('RefreshSchedule')
                                 try {
-                                    New-CMDeviceCollection @CollectionArguments
+                                    New-CMCollection @CollectionArguments
                                 }
                                 catch {
                                     Write-Error $Error[0]
@@ -133,6 +138,7 @@ function New-MEMCMCollections {
                                 Name                   = $collection.Name
                                 LimitingCollectionName = $collection.LimitingCollectionName
                                 RefreshType            = $collection.RefreshType
+                                CollectionType         = "Device" 
                                 RefreshSchedule        = ""
                             }
                             # RefreshType is Periodic or Both. Build a schedule and create the collection.
@@ -170,7 +176,7 @@ function New-MEMCMCollections {
                                 # Create the periodic collection
                                 Write-Verbose -Message "Creating the collection: $($CollectionArguments.Name)"
                                 try {
-                                    New-CMDeviceCollection @CollectionArguments
+                                    New-CMCollection @CollectionArguments
                                 }
                                 catch {
                                     Write-Error $Error[0]
@@ -182,7 +188,7 @@ function New-MEMCMCollections {
                                 Write-Verbose -Message "Not periodic creating the collection: $($CollectionArguments.Name)"
                                 $CollectionArguments.Remove('RefreshSchedule')
                                 try {
-                                    New-CMDeviceCollection @CollectionArguments
+                                    New-CMCollection @CollectionArguments
                                 }
                                 catch {
                                     Write-Error $Error[0]

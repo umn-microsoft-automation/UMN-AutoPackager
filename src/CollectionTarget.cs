@@ -13,6 +13,10 @@ namespace UMNAutoPackager
         public int Year { get; set; }
         public int Hour { get; set; }
         public int Minute { get; set; }
+        public string WeekOrder { get; set; }
+        public string DayOfWeek { get; set; }
+        public int DayOfMonth { get; set; }
+        public bool? LastDayOfMonth { get; set; }
         public DeploymentSetting DeploymentSettings { get; set; }
     }
 }
