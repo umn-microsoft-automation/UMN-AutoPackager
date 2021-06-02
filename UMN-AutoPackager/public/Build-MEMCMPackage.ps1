@@ -41,7 +41,7 @@ function Build-MEMCMPackage {
         Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
     }
     process {
-        foreach ($ConfigMgrObject in ($GlobalConfig.ConfigMgr)) {
+        foreach ($ConfigMgrObject in ($GlobalConfig.packagingTargets)) {
             Write-Verbose -Message "Processing $($ConfigMgrObject.site) Site..."
             $SiteCode = $ConfigMgrObject.SiteCode
             try {
@@ -58,61 +58,22 @@ function Build-MEMCMPackage {
             foreach ($PkgObject in $PackageDefinition) {
                 Write-Verbose -Message "Processing the package definition for $($pkgObject.publisher) $($pkgObject.productname)"
                 if ($PkgObject.PackagingTargets.Type -eq "MEMCM-Application") {
-                    $Keys = $PkgObject | Get-Member -MemberType Properties | Select-Object -ExpandProperty Name
-                    # Building out the Application Name based on the pattern if used otherwise using the specific name in the field
-                    $AppName = $PkgObject.packagingTargets.Name
-                    if ($AppName -match '}-') {
-                        $BuildName = $AppName -split '-' -replace '[{}]', ''
-                        foreach ($item in $BuildName) {
-                            if ($Keys -contains $item) {
-                                $n = $PkgObject.$item
-                                $NewAppName += "$n "
-                            }
-                        }
-                        $NewAppName = $NewAppName -replace (' ', "-")
-                        $NewAppName = $NewAppName -replace ".$"
-                    }
-                    else {
-                        $NewAppName = $AppName
-                    }
-                    # Checking if a baseapp value exists for the naming convention
-                    $baseAppName = $ConfigMgrObject.baseAppName
-                    if (-not [string]::IsNullOrEmpty($baseAppName)) {
-                        $NewAppName = $NewAppName.Insert(0, "$baseAppName-")
-                    }
-                    Write-Verbose -Message "Application name is $NewAppName"
-                    # Building the localized application name
-                    $LocalAppName = $PkgObject.packagingTargets.localizedApplicationName
-                    if ($LocalAppName -match '} ') {
-                        $LocalBuildName = $LocalAppName -split ' ' -replace '[{}]', ''
-                        foreach ($localitem in $LocalBuildName) {
-                            if ($Keys -contains $localitem) {
-                                $n = $PkgObject.$localitem
-                                $NewLocalAppName += "$n "
-                            }
-                        }
-                    }
-                    else {
-                        Write-verbose -Message "No pattern using value of packagingTargets.localizedApplicationName"
-                        $NewLocalAppName = $LocalAppName
-                    }
-                    Write-Verbose -Message "Local Application name is $NewLocalAppName"
                     # Building hashtable with all the values to use in the New-CMApplication function
                     $ApplicationArguments = @{
-                        Name                 = $NewAppName
+                        Name                 = $PkgObject.packagingTargets.Name
                         Description          = $PkgObject.Description
                         Publisher            = $PkgObject.Publisher
                         SoftwareVersion      = $PkgObject.currentVersion
                         ReleaseDate          = $PkgObject.packagingTargets.datePublished
-                        AddOwner             = $PkgObject.owner
+                        AddOwner             = $PkgObject.packagingTargets.owner
                         AutoInstall          = $PkgObject.packagingTargets.allowTSUsage
                         IconLocationFile     = $PkgObject.packagingTargets.IconLocationFile
                         Keywords             = $PkgObject.packagingTargets.Keywords
                         Linktext             = $PkgObject.packagingTargets.userDocumentationText
                         LocalizedDescription = $PkgObject.packagingTargets.localizedDescription
-                        LocalizedName        = $NewLocalAppName
+                        LocalizedName        = $PkgObject.packagingTargets.localizedApplicationName
                         PrivacyURL           = $PkgObject.packagingTargets.privacyLink
-                        SupportContact       = $PkgObject.supportContact
+                        SupportContact       = $PkgObject.packagingTargets.supportContact
                         UserDocumentation    = $PkgObject.packagingTargets.userDocumentationLink
                         ErrorAction          = "Stop"
                     }
@@ -136,16 +97,16 @@ function Build-MEMCMPackage {
                     }
                     # Building hashtable with all values to us in the DeploymentType creation functions
                     foreach ($depType in $PkgObject.packagingTargets.deploymentTypes) {
-                        $DepName = $deptype.Name
+                        # $DepName = $deptype.Name
                         $DeploymentTypeArguments = @{
                             AddDetectionClause        = ""
                             AddLanguage               = $depType.Language
-                            ApplicationName           = $NewAppName
+                            ApplicationName           = $PkgObject.packagingTargets.Name
                             CacheContent              = $deptype.cacheContent
                             Comment                   = $depType.adminComments
                             ContentFallback           = $deptype.contentFallback
-                            ContentLocation           = $depType.ContentLocation
-                            DeploymentTypeName        = $NewAppName + " $DepName"
+                            ContentLocation           = $depType.ContentLocation.LocalPath
+                            DeploymentTypeName        = $PkgObject.packagingTargets.Name + " $($depType.Name)"
                             EnableBranchCache         = $deptype.branchCache
                             EstimatedRuntimeMins      = $deptype.estimatedRuntime
                             Force32Bit                = $deptype.runAs32Bit
@@ -174,7 +135,7 @@ function Build-MEMCMPackage {
                         }
                         # Building hashtable with all the values to use with New or Set-CMDetectionClause functions
                         foreach ($detectionMethod in $depType.detectionMethods) {
-                            Write-Verbose -Message "Processing the detection method"
+                            Write-Verbose -Message "Processing the detection method: $($detectionMethod.type)"
                             $DetectionClauseArguments = @{
                                 DirectoryName      = $detectionMethod.DirectoryName
                                 Existence          = $detectionMethod.Existence
@@ -189,6 +150,7 @@ function Build-MEMCMPackage {
                                 PropertyType       = $detectionMethod.PropertyType
                                 Value              = $detectionMethod.Value
                                 ValueName          = $detectionMethod.ValueName
+                                ErrorAction        = "Stop"
                             }
                             # Removing null or empty values from the hashtable
                             $DetClauselist = New-Object System.Collections.ArrayList
@@ -275,7 +237,6 @@ function Build-MEMCMPackage {
                                         Write-Error $Error[0]
                                         Write-Warning -Message "Error: $($_.Exception.Message)"
                                     }
-                                    #Set-CMScriptDeploymentType -ApplicationName $DeploymentTypeArguments.ApplicationName -DeploymentTypeName $DeploymentTypeArguments.DeploymentTypeName -AddDetectionClause $clause
                                 }
                                 elseif ($depType.installerType -eq "Msi") {
                                     Write-Verbose -Message "Adding MSI Deployment Type - Deployment Type Name Exists"
@@ -289,33 +250,59 @@ function Build-MEMCMPackage {
                                 }
                             }
                         }
-                    }
+                    }#foreach $depType
                     # Distributing the Application content
-                    if ($PkgObject.PackagingTargets.DistributionPointName) {
-                        Write-Verbose -Message "Distributing content to a set of DP names"
+                    if ($PkgObject.packagingTargets.deploymentPoints.dpNames -and $pkgObject.overridePackagingTargets -eq $true) {
+                        Write-Verbose -Message "Distributing content to a set of DP names from PackageConfig"
                         try {
-                            Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointName $PkgObject.DistributionPointName
+                             Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointName $PkgObject.packagingTargets.deploymentPoints.dpNames -ErrorAction Stop
                         }
                         catch {
                             Write-Error $Error[0]
                             Write-Warning -Message "Error: $($_.Exception.Message)"
                         }
                     }
-                    if ($PkgObject.PackagingTargets.DistributionPointGroupName) {
-                        Write-Verbose -Message "Distributing content to a set of DP groups"
+                    elseif ($ConfigMgrObject.deploymentPoints.dpNames) {
+                        Write-Verbose -Message "Distributing content to a set of DP names from GlobalConfig"
                         try {
-                            Start-CMContentDistribution -ApplicationName $NewAppName -DistributionPointGroupName $pkgObject.DistributionPointGroupName
+                             Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointName $ConfigMgrObject.deploymentPoints.dpNames -ErrorAction Stop
                         }
                         catch {
                             Write-Error $Error[0]
                             Write-Warning -Message "Error: $($_.Exception.Message)"
                         }
+                    }
+                    else {
+                        Write-Verbose -Message "No DP Names listed"
+                    }
+                    if ($PkgObject.packagingTargets.deploymentPoints.dpNames -and $pkgObject.overridePackagingTargets -eq $true) {
+                        Write-Verbose -Message "Distributing content to a set of DP groups from PackageConfig"
+                        try {
+                            Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointGroupName $pkgObject.packagingTargets.deploymentPoints.dpGroupNames -ErrorAction Stop
+                        }
+                        catch {
+                            Write-Error $Error[0]
+                            Write-Warning -Message "Error: $($_.Exception.Message)"
+                        }
+                    }
+                    elseif ($ConfigMgrObject.deploymentPoints.dpGroupNames) {
+                        Write-Verbose -Message "Distributing content to a set of DP groups from GlobalConfig"
+                        try {
+                            Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointGroupName $ConfigMgrObject.deploymentPoints.dpGroupNames -ErrorAction Stop
+                        }
+                        catch {
+                            Write-Error $Error[0]
+                            Write-Warning -Message "Error: $($_.Exception.Message)"
+                        }
+                    }
+                    else {
+                        Write-Verbose -Message "No DP Group Names listed"
                     }
                 }
-            }
+            }#foreach $PkgObject
             Pop-Location
             $ConfigMgrDrive | Remove-PSDrive
-        }
+        }#foreach $ConfigMgrObject
     }
     end {
         Write-Verbose -Message "Ending $($myinvocation.mycommand)"
