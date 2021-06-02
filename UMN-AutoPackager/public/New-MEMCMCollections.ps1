@@ -94,9 +94,6 @@ function New-MEMCMCollections {
                                     $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -RecurCount $collection.RecurCount
                                     $CollectionArguments.set_item("RefreshSchedule", $sched)
                                 }
-# Figure out if this else statement is needed
-# Figure out the BOTH switch logic to make sure the collection gets set right
-# Fix the next section to match this one with the changes made if any
                                 else {
                                     Write-Verbose -Message "No periodic matches found"
                                 }
@@ -143,7 +140,7 @@ function New-MEMCMCollections {
                             }
                             # RefreshType is Periodic or Both. Build a schedule and create the collection.
                             if ($CollectionArguments.RefreshType -eq "Periodic" -or $CollectionArguments.RefreshType -eq "Both") {
-                                Write-Verbose -Message "Collection is using a Periodic schedule"
+                                Write-Verbose -Message "Collection is using a Periodic or Both schedule"
                                 $startdate = Get-Date -month $collection.month -day $collection.day -year $collection.year -hour $collection.hour -minute $collection.minute
                                 if ($collection.RecurInterval -eq "Days" -or $collection.RecurInterval -eq "Hours" -or $collection.RecurInterval -eq "Minutes") {
                                     Write-Verbose -Message "Periodic is using days, hours, or minutes"
@@ -172,6 +169,9 @@ function New-MEMCMCollections {
                                     Write-Verbose -Message "Periodic is using week"
                                     $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -RecurCount $collection.RecurCount
                                     $CollectionArguments.set_item("RefreshSchedule", $sched)
+                                }
+                                else {
+                                    Write-Verbose -Message "No periodic matches found"
                                 }
                                 # Create the periodic collection
                                 Write-Verbose -Message "Creating the collection: $($CollectionArguments.Name)"
