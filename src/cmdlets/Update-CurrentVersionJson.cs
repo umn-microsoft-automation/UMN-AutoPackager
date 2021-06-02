@@ -1,13 +1,15 @@
+using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Text.Json;
-using System.Text.Encodings.Web;
 using System.Management.Automation;
+using System.Text.Encodings.Web;
 
 namespace UMNAutoPackager
 {
-    [Cmdlet(VerbsCommon.Set, "UMNGlobalConfig")]
-    [OutputType(typeof(FileInfo))]
-    public class SetUMNGlobalConfig : PSCmdlet
+    [Cmdlet(VerbsData.Update, "CurrentVersionJson")]
+    [OutputType(typeof(bool))]
+    public class UpdateCurrentVersionJson : PSCmdlet
     {
         [Parameter(
             Mandatory = true,
@@ -23,7 +25,7 @@ namespace UMNAutoPackager
             ValueFromPipeline = true,
             ValueFromPipelineByPropertyName = true
         )]
-        public GlobalConfig GlobalConfig;
+        public string Version;
 
         protected override void BeginProcessing()
         {
@@ -34,6 +36,20 @@ namespace UMNAutoPackager
         {
             JsonSerializerOptions Options = new JsonSerializerOptions
             {
+                AllowTrailingCommas = true,
+                PropertyNameCaseInsensitive = true,
+                IncludeFields = true,
+                IgnoreNullValues = true
+            };
+
+            string PackageFile = File.ReadAllText(Path);
+            //WriteVerbose(PackageFile);
+            var PackageConfig = JsonSerializer.Deserialize<Dictionary<string, object>>(PackageFile);
+
+            PackageConfig["currentVersion"] = Version;
+
+            JsonSerializerOptions SerializeOptions = new JsonSerializerOptions
+            {
                 WriteIndented = true,
                 IgnoreNullValues = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -41,11 +57,11 @@ namespace UMNAutoPackager
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
 
-            string JsonContent = JsonSerializer.Serialize<GlobalConfig>(GlobalConfig, Options);
-            File.WriteAllText(Path, JsonContent);
-            FileInfo JsonFile = new FileInfo(Path);
-            WriteVerbose(JsonContent);
-            WriteObject(JsonFile);
+            string OutputString = JsonSerializer.Serialize(PackageConfig, SerializeOptions);
+
+            WriteVerbose(OutputString);
+
+            File.WriteAllText(Path, OutputString);
         }
 
         protected override void EndProcessing()
