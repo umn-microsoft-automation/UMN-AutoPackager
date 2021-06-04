@@ -10,6 +10,12 @@
     "packagingTargets": [
         {
             "type": "MEMCM-Application",
+            "site": "site.comething.com",
+            "siteCode": "COM",
+            "downloadLocationPath": "C:\\Temp",
+            "applicationContentPath": "\\\\AppStorage.somewhere\\",
+            "preAppName": "AutoPkg",
+            "postAppName": "something",
             "deploymentPoints": {
                 "dpGroupNames": [
                     "DP-Group1",
@@ -56,7 +62,7 @@
                     "branchCache": false,
                     "contentFallback": false,
                     "onSlowNetwork": "Download",
-                    "installCMD": null,
+                    "installCMD": "install-firefox.ps1",
                     "uninstallCMD": null,
                     "runAs32Bit": false,
                     "installBehavior": "InstallForSystem",
@@ -70,7 +76,7 @@
                         {
                             "type": "Directory",
                             "directoryName": "dirName",
-                            "path": "pathToDirLocation",
+                            "path": "c:\\Program Files\\",
                             "is64Bit": false,
                             "existence": true
                         },
@@ -86,7 +92,7 @@
                         {
                             "type": "File",
                             "fileName": "fileName",
-                            "path": "pathToFile",
+                            "path": "C:\\Program Files\\Mozilla\\Firefox.exe",
                             "is64Bit": false,
                             "existence": true
                         },
@@ -121,7 +127,7 @@
                             "existence": true,
                             "expectedValue": "",
                             "expressionOperator": "",
-                            "productCode": "4F7840A9-9816-45E2-9F6C-F7067A8BC0FD",
+                            "productCode": "{4F7840A9-9816-45E2-9F6C-F7067A8BC0FD}",
                             "propertyType": null
                         }
                     ]
@@ -152,7 +158,7 @@
                         "rebootOutsideServiceWindow": false,
                         "replaceToastNotificationWithDialog": false,
                         "sendWakeupPacket": false,
-                        "timeBasedOn": "LocalTime",
+                        "timeBaseOn": "LocalTime",
                         "userNotification": "DisplayAll",
                         "availStart": 2,
                         "availHour": 12,
@@ -178,12 +184,11 @@
                     "year": 2021,
                     "hour": 14,
                     "minute": 0,
-                    "deploymentSetting": {
+                    "deploymentSettings": {
                         "allowRepairApp": true,
                         "deployAction": "Install",
                         "deployPurpose": "Available",
                         "overrideServiceWindow": false,
-                        "replaceToastNotificationWithDialog": true,
                         "timeBaseOn": "LocalTime",
                         "userNotification": "DisplayAll",
                         "availStart": 1,
@@ -205,17 +210,17 @@
                     "year": 2021,
                     "hour": 14,
                     "minute": 0,
-                    "deploymentSetting": {
+                    "deploymentSettings": {
                         "allowRepairApp": false,
                         "deployAction": "Install",
                         "deployPurpose": "Required",
                         "overrideServiceWindow": false,
                         "preDeploy": true,
                         "rebootOutsideServiceWindow": false,
-                        "replaceToastNotificationWithDialog": false,
+                        "replaceToastNotificationWithDialog": true,
                         "sendWakeupPacket": false,
                         "timeBaseOn": "LocalTime",
-                        "userNotification": "DisplayAll",
+                        "userNotification": "HideAll",
                         "availStart": 5,
                         "availHour": 12,
                         "availMinute": 0,
@@ -247,7 +252,7 @@
                         "replaceToastNotificationWithDialog": false,
                         "sendWakeupPacket": false,
                         "timeBaseOn": "LocalTime",
-                        "userNotification": "DisplayAll",
+                        "userNotification": "DisplaySoftwareCenterOnly",
                         "availStart": 15,
                         "availHour": 12,
                         "availMinute": 15,

@@ -42,7 +42,7 @@
             "rebootOutsideServiceWindow": false,
             "replaceToastNotificationWithDialog": false,
             "sendWakeupPacket": false,
-            "timeBasedOn": "LocalTime",
+            "timeBaseOn": "LocalTime",
             "userNotification": "DisplayAll",
             "availStart": 2,
             "availHour": 12,
@@ -68,13 +68,13 @@
           "year": 2021,
           "hour": 14,
           "minute": 0,
-          "deploymentSetting": {
+          "deploymentSettings": {
             "allowRepairApp": true,
             "deployAction": "Install",
             "deployPurpose": "Available",
             "overrideServiceWindow": false,
             "replaceToastNotificationWithDialog": true,
-            "timeBasedOn": "LocalTime",
+            "timeBaseOn": "LocalTime",
             "userNotification": "DisplayAll",
             "availStart": 1,
             "availHour": 19,
@@ -95,7 +95,7 @@
           "year": 2021,
           "hour": 14,
           "minute": 0,
-          "deploymentSetting": {
+          "deploymentSettings": {
             "allowRepairApp": false,
             "deployAction": "Install",
             "deployPurpose": "Required",
@@ -104,7 +104,7 @@
             "rebootOutsideServiceWindow": false,
             "replaceToastNotificationWithDialog": false,
             "sendWakeupPacket": false,
-            "timeBasedOn": "LocalTime",
+            "timeBaseOn": "LocalTime",
             "userNotification": "DisplayAll",
             "availStart": 5,
             "availHour": 12,
@@ -127,7 +127,7 @@
           "year": 2021,
           "hour": 14,
           "minute": 0,
-          "deploymentSetting": {
+          "deploymentSettings": {
             "allowRepairApp": false,
             "deployAction": "Install",
             "deployPurpose": "Required",
@@ -136,7 +136,7 @@
             "rebootOutsideServiceWindow": false,
             "replaceToastNotificationWithDialog": false,
             "sendWakeupPacket": false,
-            "timeBasedOn": "LocalTime",
+            "timeBaseOn": "LocalTime",
             "userNotification": "DisplayAll",
             "availStart": 15,
             "availHour": 12,
@@ -151,10 +151,10 @@
           "name": "UWIDE-Updates-{publisher} {productName}-None",
           "limitingCollectionName": "Test Systems",
           "refreshtype": "None",
-          "deploymentSetting": {
+          "deploymentSettings": {
             "deployAction": "Uninstall",
             "deployPurpose": "Required",
-            "timeBasedOn": "UTC",
+            "timeBaseOn": "UTC",
             "overrideServiceWindow": true,
             "rebootOutsideServiceWindow": true,
             "deadlineStart": 25,
