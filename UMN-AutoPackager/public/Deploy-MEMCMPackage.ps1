@@ -158,15 +158,6 @@ function Deploy-MEMCMPackage {
                                     Write-Error $Error[0]
                                     Write-Warning -Message "Error: $($_.Exception.Message)"
                                 }
-                                # Creates the time as UTC regardless of TimeBaseOn switch being set to LocalTime setting the date time
-                                if ($collection.deploymentSettings.timeBaseOn -eq "LocalTime" -and $collection.deploymentSettings.deadlineStart) {
-                                    Write-Verbose -Message "Time based on LocalTime and deadline start has a value"
-                                    Set-CMApplicationDeployment -ApplicationName $DeploymentArguments.Name -CollectionName $deploymentArguments.CollectionName -DeadlineDatetime $DeploymentArguments.DeadlineDateTime -AvailableDateTime $DeploymentArguments.AvailableDateTime
-                                }
-                                elseif ($collection.deploymentSettings.timeBaseOn -eq "LocalTime" -and (-not $collection.deploymentSettings.deadlineStart)) {
-                                    Write-Verbose -Message "Time based on LocalTime and no deadline start value"
-                                    Set-CMApplicationDeployment -ApplicationName $DeploymentArguments.Name -CollectionName $deploymentArguments.CollectionName -AvailableDateTime $DeploymentArguments.AvailableDateTime
-                                }
                             }
                             else {
                                 Write-Verbose -Message "$($collection.Name) does not exist or is not a MEMCM-Collection type."
