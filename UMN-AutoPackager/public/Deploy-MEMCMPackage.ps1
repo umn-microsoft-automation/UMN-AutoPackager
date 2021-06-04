@@ -89,9 +89,6 @@ function Deploy-MEMCMPackage {
                                 else {
                                     Write-Verbose -Message "The collection: $($collection.name) does not have an existing deployment"
                                 }
-                                # Get the application name based on which config file is being used
-                                # if true just grab it since it will be part of the foreach loop
-                                # if false loop through the packagingtargets in packagedefintion and match against site and sitecode
                                 if ($PackageDefinition.overridePackagingTargets -eq $True) {
                                     $AppName = $ConfigMgrObject.Name
                                 }
@@ -102,7 +99,6 @@ function Deploy-MEMCMPackage {
                                         }
                                     }
                                 }
-                                Write-Output $AppName
                                 Write-Verbose -Message "Building deployment..."
                                 $DeploymentArguments = @{
                                     Name                               = $AppName
