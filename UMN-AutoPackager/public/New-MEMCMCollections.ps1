@@ -35,7 +35,15 @@ function New-MEMCMCollections {
         Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
     }
     process {
-        foreach ($ConfigMgrObject in ($GlobalConfig.packagingTargets)) {
+        if ($PackageDefinition.overridePackagingTargets -eq $True) {
+            Write-Verbose -Message "Override is true using the PackageDefinition settings"
+            $packageTargets = $PackageDefinition.packagingTargets
+        }
+        else {
+            $packageTargets = $GlobalConfig.packagingTargets
+            Write-Verbose -Message "Override is false using the GlobalDefinition settings"
+        }
+        foreach ($ConfigMgrObject in $packageTargets) {
             Write-Verbose -Message "Processing $($ConfigMgrObject.site) Site..."
             $SiteCode = $ConfigMgrObject.SiteCode
             try {
@@ -49,158 +57,80 @@ function New-MEMCMCollections {
             }
             Push-Location
             Set-Location -Path "$SiteCode`:\"
-            foreach ($PkgObject in $PackageDefinition) {
-                if ($PkgObject.overridePackagingTargets -eq $True) {
-                    Write-Verbose -Message "Processing the package definition in package config: $($pkgObject.publisher) $($pkgObject.productname)"
-                    foreach ($collection in $PkgObject.packagingTargets.collectionTargets) {
-                        if (($collection.type -eq "MEMCM-Collection") -and (-not (Get-CMCollection -Name $collection.Name))) {
-                            Write-Verbose -Message "Building collection $($collection.name) for ConfigMgr"
-                            $CollectionArguments = @{
-                                Name                   = $collection.Name
-                                LimitingCollectionName = $collection.limitingCollectionName
-                                RefreshType            = $collection.RefreshType
-                                CollectionType         = "Device"
-                                RefreshSchedule        = ""
+            foreach ($PkgObject in $packagetargets) {
+                Write-Verbose -Message "Processing the package definition in package config: $($pkgObject.publisher) $($pkgObject.productname)"
+                foreach ($collection in $PkgObject.collectionTargets) {
+                    if (($collection.type -eq "MEMCM-Collection") -and (-not (Get-CMCollection -Name $collection.Name))) {
+                        Write-Verbose -Message "Building collection $($collection.name) for ConfigMgr"
+                        $CollectionArguments = @{
+                            Name                   = $collection.Name
+                            LimitingCollectionName = $collection.limitingCollectionName
+                            RefreshType            = $collection.RefreshType
+                            CollectionType         = "Device"
+                            RefreshSchedule        = ""
+                        }
+                        # RefreshType is Periodic or Both. Build a schedule and create the collection.
+                        if ($CollectionArguments.RefreshType -eq "Periodic" -or $CollectionArguments.RefreshType -eq "Both") {
+                            Write-Verbose -Message "Collection is using a Periodic or Both schedule"
+                            $startdate = Get-Date -month $collection.month -day $collection.day -year $collection.year -hour $collection.hour -minute $collection.minute
+                            if ($collection.RecurInterval -eq "Days" -or $collection.RecurInterval -eq "Hours" -or $collection.RecurInterval -eq "Minutes") {
+                                Write-Verbose -Message "Periodic is using days, hours, or minutes"
+                                $sched = New-CMSchedule -Start $startdate -RecurInterval $collection.RecurInterval -Recurcount $collection.RecurCount
+                                $CollectionArguments.set_item("RefreshSchedule", $sched)
                             }
-                            # RefreshType is Periodic or Both. Build a schedule and create the collection.
-                            if ($CollectionArguments.RefreshType -eq "Periodic" -or $CollectionArguments.RefreshType -eq "Both") {
-                                Write-Verbose -Message "Collection is using a Periodic or Both schedule"
-                                $startdate = Get-Date -month $collection.month -day $collection.day -year $collection.year -hour $collection.hour -minute $collection.minute
-                                if ($collection.RecurInterval -eq "Days" -or $collection.RecurInterval -eq "Hours" -or $collection.RecurInterval -eq "Minutes") {
-                                    Write-Verbose -Message "Periodic is using days, hours, or minutes"
-                                    $sched = New-CMSchedule -Start $startdate -RecurInterval $collection.RecurInterval -Recurcount $collection.RecurCount
+                            elseif ($collection.RecurInterval -eq "Month") {
+                                Write-Verbose -Message "Periodic using month"
+                                if ($collection.LastDayofMonth -eq $true) {
+                                    Write-Verbose -Message "Periodic is using LastDayOfMonth"
+                                    $sched = New-CMSchedule -Start $startdate -LastDayOfMonth
                                     $CollectionArguments.set_item("RefreshSchedule", $sched)
                                 }
-                                elseif ($collection.RecurInterval -eq "Month") {
-                                    Write-Verbose -Message "Periodic using month"
-                                    if ($collection.LastDayofMonth -eq $true) {
-                                        Write-Verbose -Message "Periodic is using LastDayOfMonth"
-                                        $sched = New-CMSchedule -Start $startdate -LastDayOfMonth
-                                        $CollectionArguments.set_item("RefreshSchedule", $sched)
-                                    }
-                                    elseif ($collection.WeekOrder) {
-                                        Write-Verbose -Message "Periodic is using WeekOrder"
-                                        $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -WeekOrder $collection.WeekOrder -RecurCount $collection.RecurCount
-                                        $CollectionArguments.set_item("RefreshSchedule", $sched)
-                                    }
-                                    elseif ($collection.DayOfMonth) {
-                                        Write-Verbose -Message "Periodic is using Day of Month"
-                                        $sched = New-CMSchedule -Start $startdate -DayOfMonth $collection.DayOfMonth -RecurCount $collection.RecurCount
-                                        $CollectionArguments.set_item("RefreshSchedule", $sched)
-                                    }
-                                }
-                                elseif ($collection.RecurInterval -eq "Week") {
-                                    Write-Verbose -Message "Periodic is using week"
-                                    $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -RecurCount $collection.RecurCount
+                                elseif ($collection.WeekOrder) {
+                                    Write-Verbose -Message "Periodic is using WeekOrder"
+                                    $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -WeekOrder $collection.WeekOrder -RecurCount $collection.RecurCount
                                     $CollectionArguments.set_item("RefreshSchedule", $sched)
                                 }
-                                else {
-                                    Write-Verbose -Message "No periodic matches found"
+                                elseif ($collection.DayOfMonth) {
+                                    Write-Verbose -Message "Periodic is using Day of Month"
+                                    $sched = New-CMSchedule -Start $startdate -DayOfMonth $collection.DayOfMonth -RecurCount $collection.RecurCount
+                                    $CollectionArguments.set_item("RefreshSchedule", $sched)
                                 }
-                                # Create the periodic collection
-                                Write-Verbose -Message "Creating the collection: $($CollectionArguments.Name)"
-                                try {
-                                    New-CMCollection @CollectionArguments
-                                }
-                                catch {
-                                    Write-Error $Error[0]
-                                    Write-Warning -Message "Error: $($_.Exception.Message)"
-                                }
+                            }
+                            elseif ($collection.RecurInterval -eq "Week") {
+                                Write-Verbose -Message "Periodic is using week"
+                                $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -RecurCount $collection.RecurCount
+                                $CollectionArguments.set_item("RefreshSchedule", $sched)
                             }
                             else {
-                                # Create the non-periodic collection
-                                Write-Verbose -Message "Not periodic creating the collection: $($CollectionArguments.Name)"
-                                $CollectionArguments.Remove('RefreshSchedule')
-                                try {
-                                    New-CMCollection @CollectionArguments
-                                }
-                                catch {
-                                    Write-Error $Error[0]
-                                    Write-Warning -Message "Error: $($_.Exception.Message)"
-                                }
+                                Write-Verbose -Message "No periodic matches found"
+                            }
+                            # Create the periodic collection
+                            Write-Verbose -Message "Creating the collection: $($CollectionArguments.Name)"
+                            try {
+                                New-CMCollection @CollectionArguments
+                            }
+                            catch {
+                                Write-Error $Error[0]
+                                Write-Warning -Message "Error: $($_.Exception.Message)"
                             }
                         }
                         else {
-                            Write-Verbose -Message "$($collection.Name) exists already or is not a MEMCM-Collection type."
-                        }
-                    }#foreach override true: $CollectionTargets
-                }
-                elseif ($PkgObject.overridePackagingTargets -eq $false) {
-                    Write-Verbose -Message "Processing the package definition in global config: $($pkgObject.publisher) $($pkgObject.productname)"
-                    foreach ($collection in $ConfigMgrObject.CollectionTargets) {
-                        if (($collection.type -eq "MEMCM-Collection") -and (-not (Get-CMCollection -Name $collection.Name))) {
-                            # Collection does not exist, building the collection.
-                            Write-Verbose -Message "Building collection $($collection.name) for ConfigMgr"
-                            $CollectionArguments = @{
-                                Name                   = $collection.Name
-                                LimitingCollectionName = $collection.LimitingCollectionName
-                                RefreshType            = $collection.RefreshType
-                                CollectionType         = "Device" 
-                                RefreshSchedule        = ""
+                            # Create the non-periodic collection
+                            Write-Verbose -Message "Not periodic creating the collection: $($CollectionArguments.Name)"
+                            $CollectionArguments.Remove('RefreshSchedule')
+                            try {
+                                New-CMCollection @CollectionArguments
                             }
-                            # RefreshType is Periodic or Both. Build a schedule and create the collection.
-                            if ($CollectionArguments.RefreshType -eq "Periodic" -or $CollectionArguments.RefreshType -eq "Both") {
-                                Write-Verbose -Message "Collection is using a Periodic or Both schedule"
-                                $startdate = Get-Date -month $collection.month -day $collection.day -year $collection.year -hour $collection.hour -minute $collection.minute
-                                if ($collection.RecurInterval -eq "Days" -or $collection.RecurInterval -eq "Hours" -or $collection.RecurInterval -eq "Minutes") {
-                                    Write-Verbose -Message "Periodic is using days, hours, or minutes"
-                                    $sched = New-CMSchedule -Start $startdate -RecurInterval $collection.RecurInterval -Recurcount $collection.RecurCount
-                                    $CollectionArguments.set_item("RefreshSchedule", $sched)
-                                }
-                                elseif ($collection.RecurInterval -eq "Month") {
-                                    Write-Verbose -Message "Periodic using month"
-                                    if ($collection.LastDayofMonth -eq $true) {
-                                        Write-Verbose -Message "Periodic is using LastDayOfMonth"
-                                        $sched = New-CMSchedule -Start $startdate -LastDayOfMonth
-                                        $CollectionArguments.set_item("RefreshSchedule", $sched)
-                                    }
-                                    elseif ($collection.WeekOrder) {
-                                        Write-Verbose -Message "Periodic is using WeekOrder"
-                                        $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -WeekOrder $collection.WeekOrder -RecurCount $collection.RecurCount
-                                        $CollectionArguments.set_item("RefreshSchedule", $sched)
-                                    }
-                                    elseif ($collection.DayOfMonth) {
-                                        Write-Verbose -Message "Periodic is using Day of Month"
-                                        $sched = New-CMSchedule -Start $startdate -DayOfMonth $collection.DayOfMonth -RecurCount $collection.RecurCount
-                                        $CollectionArguments.set_item("RefreshSchedule", $sched)
-                                    }
-                                }
-                                elseif ($collection.RecurInterval -eq "Week") {
-                                    Write-Verbose -Message "Periodic is using week"
-                                    $sched = New-CMSchedule -Start $startdate -DayOfWeek $collection.DayOfWeek -RecurCount $collection.RecurCount
-                                    $CollectionArguments.set_item("RefreshSchedule", $sched)
-                                }
-                                else {
-                                    Write-Verbose -Message "No periodic matches found"
-                                }
-                                # Create the periodic collection
-                                Write-Verbose -Message "Creating the collection: $($CollectionArguments.Name)"
-                                try {
-                                    New-CMCollection @CollectionArguments
-                                }
-                                catch {
-                                    Write-Error $Error[0]
-                                    Write-Warning -Message "Error: $($_.Exception.Message)"
-                                }
-                            }
-                            else {
-                                # Create the non-periodic collection
-                                Write-Verbose -Message "Not periodic creating the collection: $($CollectionArguments.Name)"
-                                $CollectionArguments.Remove('RefreshSchedule')
-                                try {
-                                    New-CMCollection @CollectionArguments
-                                }
-                                catch {
-                                    Write-Error $Error[0]
-                                    Write-Warning -Message "Error: $($_.Exception.Message)"
-                                }
+                            catch {
+                                Write-Error $Error[0]
+                                Write-Warning -Message "Error: $($_.Exception.Message)"
                             }
                         }
-                        else {
-                            Write-Verbose -Message "$($collection.Name) exists already or is not a MEMCM-Collection type."
-                        }
-                    }#foreach override false: $CollectionTargets
-                }
+                    }
+                    else {
+                        Write-Verbose -Message "$($collection.Name) exists already or is not a MEMCM-Collection type."
+                    }
+                }#foreach $CollectionTargets
             }#foreach $PackageDefinition
             Pop-Location
             $ConfigMgrDrive | Remove-PSDrive
