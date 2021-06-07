@@ -1,6 +1,7 @@
 {
   "companyName": "MyCompany",
   "lastModified": "2/1/2021 11:22:58 AM",
+  "MEMCMModulePath": "C:\\Program Files (x86)\\Microsoft Endpoint Manager\\AdminConsole\\bin\\ConfigurationManager.psd1",
   "packagingTargets": [
     {
       "type": "MEMCM-Application",
