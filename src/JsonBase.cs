@@ -82,10 +82,8 @@ namespace UMNAutoPackager
                     // Handle Uri's
                     else if (null != o && propertyInfo.PropertyType == typeof(Uri))
                     {
-                        Console.WriteLine(o.ToString());
                         Uri updatedUri = new Uri(o.ToString().Replace(variableName, value));
                         propertyInfo.SetValue(this, updatedUri);
-                        Console.WriteLine(propertyInfo.GetValue(this).ToString());
                     }
                 }
             }
