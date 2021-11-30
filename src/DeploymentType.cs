@@ -25,7 +25,7 @@ namespace UMNAutoPackager
         public int MaxRuntime { get; set; }
         // Might need to make this a datatype
         public string RebootBehavior { get; set; }
-        public Uri ContentLocation { get; set; }
+        public string ContentLocation { get; set; }
         public DetectionMethod[] DetectionMethods { get; set; }
     }
 }
