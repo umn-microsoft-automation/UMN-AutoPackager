@@ -40,11 +40,24 @@ function Get-MSIDatabasePropertyValue {
 
     Process { 
         try { 
+
+            if ($Path.StartsWith('\\')) {
+                # Get filename
+                $MSIFilename = Split-path -Path $Path -Leaf
+
+                Write-Information "MSI is on network share, need to copy to $($env:temp) to get product code"
+                Copy-Item -Path $Path -Destination "$($env:temp)\$MSIFilename" -Force
+                $MSIPath = "$($env:temp)\$MSIFilename"
+            }
+            else {
+                $MSIPath = $Path
+            }
+
             # Read property from MSI database 
             $WindowsInstaller = New-Object -ComObject WindowsInstaller.Installer
             
             # Opens the database as read-only (0)
-            $MSIDatabase = $WindowsInstaller.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $null, $WindowsInstaller, @($Path, 0)) 
+            $MSIDatabase = $WindowsInstaller.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $null, $WindowsInstaller, @($MSIPath, 0)) 
             
             $MSIQuery = "SELECT Value FROM Property WHERE Property = '$Property'" 
             
