@@ -2,18 +2,19 @@ using System.IO;
 using System.Text.Json;
 using System.Management.Automation;
 
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 {
-    [Cmdlet(VerbsCommon.Get, "PackageDefinition")]
-    [OutputType(typeof(AutoPackageDefinition))]
-    public class GetPackageDefinition : PSCmdlet
+    [Cmdlet(VerbsCommon.Get, "UMNGlobalConfig")]
+    [OutputType(typeof(GlobalConfig))]
+    public class GetUMNGlobalConfig : PSCmdlet
     {
         [Parameter(
             Mandatory = true,
             Position = 0,
             ValueFromPipeline = true,
-            ValueFromPipelineByPropertyName = true)]
-        public string filePath;
+            ValueFromPipelineByPropertyName = true
+        )]
+        public string Path;
 
         protected override void BeginProcessing()
         {
@@ -27,20 +28,23 @@ namespace UMNAutoPackger
                 JsonSerializerOptions Options = new JsonSerializerOptions
                 {
                     AllowTrailingCommas = true,
-                    PropertyNameCaseInsensitive = true
+                    PropertyNameCaseInsensitive = true,
+                    IncludeFields = true,
+                    IgnoreNullValues = true
                 };
 
-                string PackageFile = File.ReadAllText(filePath);
-                WriteVerbose(PackageFile);
-                AutoPackageDefinition PackageDef = JsonSerializer.Deserialize<AutoPackageDefinition>(PackageFile, Options);
-                WriteObject(PackageDef);
+                Options.Converters.Add(new DateTimeConverter());
+
+                string GlobalConfigFile = File.ReadAllText(Path);
+                WriteVerbose(GlobalConfigFile);
+                GlobalConfig GlobalCfg = JsonSerializer.Deserialize<GlobalConfig>(GlobalConfigFile, Options);
+                WriteObject(GlobalCfg);
             }
             catch (JsonException ex)
             {
-                ErrorRecord ER = new ErrorRecord(ex, "JsonError", ErrorCategory.NotSpecified, filePath);
+                ErrorRecord ER = new ErrorRecord(ex, "JsonError", ErrorCategory.NotSpecified, Path);
                 WriteError(ER);
             }
-
         }
 
         protected override void EndProcessing()

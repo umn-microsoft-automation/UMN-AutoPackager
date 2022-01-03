@@ -1,9 +1,9 @@
 using System.Management.Automation;
 
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 {
-    [Cmdlet(VerbsCommon.New, "PackageDefinition")]
-    [OutputType(typeof(AutoPackageDefinition))]
+    [Cmdlet(VerbsCommon.New, "UMNPackageConfig")]
+    [OutputType(typeof(PackageConfig))]
     public class NewPackageDefinition : PSCmdlet
     {
         [Parameter(

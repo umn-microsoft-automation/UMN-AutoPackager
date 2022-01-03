@@ -2,18 +2,19 @@ using System.IO;
 using System.Text.Json;
 using System.Management.Automation;
 
-namespace UMNAutoPackger
+namespace UMNAutoPackager
 {
-    [Cmdlet(VerbsCommon.Get, "AutoPackagerGlobalConfig")]
-    [OutputType(typeof(AutoPackagerConfiguration))]
-    public class GetAutoPackagerGlobalConfig : PSCmdlet
+    [Cmdlet(VerbsCommon.Get, "UMNPackageConfig")]
+    [OutputType(typeof(PackageConfig))]
+    public class GetPackageDefinition : PSCmdlet
     {
         [Parameter(
             Mandatory = true,
             Position = 0,
             ValueFromPipeline = true,
-            ValueFromPipelineByPropertyName = true)]
-        public string filePath;
+            ValueFromPipelineByPropertyName = true
+        )]
+        public string Path;
 
         protected override void BeginProcessing()
         {
@@ -27,17 +28,21 @@ namespace UMNAutoPackger
                 JsonSerializerOptions Options = new JsonSerializerOptions
                 {
                     AllowTrailingCommas = true,
-                    PropertyNameCaseInsensitive = true
+                    PropertyNameCaseInsensitive = true,
+                    IncludeFields = true,
+                    IgnoreNullValues = true
                 };
 
-                string ConfigurationFile = File.ReadAllText(filePath);
-                WriteVerbose(ConfigurationFile);
-                AutoPackagerConfiguration PackagerConfiguration = JsonSerializer.Deserialize<AutoPackagerConfiguration>(ConfigurationFile);
-                WriteObject(PackagerConfiguration);
+                Options.Converters.Add(new DateTimeConverter());
+
+                string PackageFile = File.ReadAllText(Path);
+                WriteVerbose(PackageFile);
+                PackageConfig PackageDef = JsonSerializer.Deserialize<PackageConfig>(PackageFile, Options);
+                WriteObject(PackageDef);
             }
             catch (JsonException ex)
             {
-                ErrorRecord ER = new ErrorRecord(ex, "JsonError", ErrorCategory.NotSpecified, filePath);
+                ErrorRecord ER = new ErrorRecord(ex, "JsonError", ErrorCategory.NotSpecified, Path);
                 WriteError(ER);
             }
         }
