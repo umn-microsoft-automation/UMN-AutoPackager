@@ -74,19 +74,21 @@ function Invoke-AutoPackager {
                             $SiteTargets = $UpdatedGlobalConfig.PackagingTargets
                         }
 
-                        # Check for newer version
-                        $VersionCheck = . $DetectVersionPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig
-                        $UpdatedPackageConfig.CurrentVersion = $VersionCheck.Version
-                        $UpdatedPackageConfig.ReplaceVariable("{currentVersion}", $VersionCheck.Version)
-
-                        Write-Debug -Message "Version Check: $($VersionCheck.ToString())"
-
                         foreach ($SiteTarget in $SiteTargets) {
                             $GlobalVariables = [hashtable]@{
                                 "{preAppName}"             = $SiteTarget.preAppName
                                 "{postAppName}"            = $SiteTarget.postAppName
                                 "{applicationContentPath}" = $SiteTarget.ApplicationContentPath.LocalPath
                             }
+
+                            # Check for newer version
+                            $VersionCheck = . $DetectVersionPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+                            
+                            # Update Version in variables and in the config
+                            $UpdatedPackageConfig.CurrentVersion = $VersionCheck.Version
+                            $UpdatedPackageConfig.ReplaceVariable("{currentVersion}", $VersionCheck.Version)
+
+                            Write-Debug -Message "Version Check: $($VersionCheck.ToString())"
 
                             $UpdatedPackageConfig.ReplaceVariables($GlobalVariables)
 
