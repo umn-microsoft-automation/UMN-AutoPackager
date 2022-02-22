@@ -66,6 +66,7 @@ function Get-CurrentVersionFromMEMCM {
         }
 
         Pop-Location
+        $ConfigMgrDrive | Remove-PSDrive
 
         return @{
             AppName = $ReturnAppName
