@@ -13,8 +13,8 @@ This module consists of a PowerShell portion and a C# portion.  They all exist u
 
 ## Requirements
 
- - [.Net Core SDK 3.x](https://dotnet.microsoft.com/download)
- - Powershell (Either built in Windows Powershell or [Powershell Core](https://github.com/PowerShell/PowerShell/releases/latest))
+- [.Net Core SDK 3.x](https://dotnet.microsoft.com/download)
+- Powershell (Either built in Windows Powershell or [Powershell Core](https://github.com/PowerShell/PowerShell/releases/latest))
 
 ## Building the Project
 
