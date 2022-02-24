@@ -3,12 +3,14 @@ $TestConfig = @{
 }
 
 try {
-    if($ModuleRoot) {
+    if ($ModuleRoot) {
         Import-Module (Join-Path $ModuleRoot "$ModuleName.psd1") -Force -Verbose
-    } else {
-        if(Test-Path -Path ..\$($TestConfig.TestModuleName)\$($TestConfig.TestModuleName).psd1) {
+    }
+    else {
+        if (Test-Path -Path ..\$($TestConfig.TestModuleName)\$($TestConfig.TestModuleName).psd1) {
             Import-Module ..\$($TestConfig.TestModuleName)\$($TestConfig.TestModuleName).psd1 -Force -Verbose
-        } elseif(Test-Path .\$($TestConfig.TestModuleName)\$($TestConfig.TestModuleName).psd1) {
+        }
+        elseif (Test-Path .\$($TestConfig.TestModuleName)\$($TestConfig.TestModuleName).psd1) {
             Import-Module .\$($TestConfig.TestModuleName)\$($TestConfig.TestModuleName).psd1 -Force -Verbose
         }
     }
@@ -37,12 +39,19 @@ try {
                 Compare-Version -ReferenceVersion "1.0.0" -DifferenceVersion "2.0.0.0" | Should -BeFalse
             }
 
+            It "[SemVer] Should return false if the reference version is equal to the difference version." {
+                Compare-Version -ReferenceVersion "2.0.0" -DifferenceVersion "2.0.0" | Should -BeFalse
+                Compare-Version -ReferenceVersion "2.0.0-beta1" -DifferenceVersion "2.0.0-beta1" | Should -BeFalse
+                Compare-Version -ReferenceVersion "98.0.4758.102" -DifferenceVersion "98.0.4758.102" | Should -BeFalse
+            }
+
             It "Should throw if the version is not parsable by the current logic of the function" {
                 { Compare-Version -ReferenceVersion "alpha1" -DifferenceVersion "beta1" } | Should -Throw
                 { Compare-Version -ReferenceVersion "1.0.0-alpha1" -DifferenceVersion "1.0.0.0" } | Should -Throw
             }
         }
     }
-} catch {
+}
+catch {
     $Error[0]
 }
