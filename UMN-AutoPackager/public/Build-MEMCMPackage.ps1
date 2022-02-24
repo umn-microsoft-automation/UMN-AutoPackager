@@ -150,6 +150,7 @@ function Build-MEMCMPackage {
                     # Building hashtable with all the values to use with New or Set-CMDetectionClause functions
                     foreach ($detectionMethod in $depType.detectionMethods) {
                         Write-Verbose -Message "Processing the detection method: $($detectionMethod.type)"
+                        
                         $DetectionClauseArguments = @{
                             DirectoryName      = $detectionMethod.DirectoryName
                             Existence          = $detectionMethod.Existence
