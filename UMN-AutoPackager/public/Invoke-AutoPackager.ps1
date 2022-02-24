@@ -75,15 +75,26 @@ function Invoke-AutoPackager {
                         }
 
                         foreach ($SiteTarget in $SiteTargets) {
-                            $GlobalVariables = [hashtable]@{
-                                "{preAppName}"             = $SiteTarget.preAppName
-                                "{postAppName}"            = $SiteTarget.postAppName
-                                "{applicationContentPath}" = $SiteTarget.ApplicationContentPath.LocalPath
+                            if (-not ($null -eq $SiteTarget.ApplicationContentPath.LocalPath)) {
+                                $GlobalVariables = [hashtable]@{
+                                    "{applicationContentPath}" = $SiteTarget.ApplicationContentPath.LocalPath
+                                }
+                            }
+                            else {
+                                throw "ApplicationContentPath is not set in the global configuration or the package configuration.`nThis is a key value."
+                            }
+
+                            if (-not ($null -eq $SiteTarget.preAppName)) {
+                                $GlobalVariables["{preAppName}"] = $SiteTarget.preAppName
+                            }
+
+                            if (-not ($null -eq $SiteTarget.postAppName)) {
+                                $GlobalVariables["{postAppName}"] = $SiteTarget.postAppName
                             }
 
                             # Check for newer version
                             $VersionCheck = . $DetectVersionPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
-                            
+
                             # Update Version in variables and in the config
                             $UpdatedPackageConfig.CurrentVersion = $VersionCheck.Version
                             $UpdatedPackageConfig.ReplaceVariable("{currentVersion}", $VersionCheck.Version)
