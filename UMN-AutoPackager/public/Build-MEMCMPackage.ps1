@@ -6,17 +6,17 @@ function Build-MEMCMPackage {
         This command creates an application for each site based on the values of the GlobalConfig and PackageConfig json values. It leverages various powershell commands provided with ConfigMgr.
     .PARAMETER GlobalConfig
         Input the global configuration json file using the Get-GlobalConfig command
-    .PARAMETER PackageDefinition
+    .PARAMETER PackageConfig
         Input the package definition json file using the Get-GlobalConfig command
     .PARAMETER Credential
         Input the credentials object or the user name which will prompt for credentials. If not called will attempt to use the credentials of the account that is running the script.
     .PARAMETER SiteTarget
         This is the PackagingTargets section of either the GlobalConfig or PackageConfig, whichever has the site info.
     .EXAMPLE
-        Build-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\UMNAutopackager\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\UMNAutopackager\PackageConfig.json) -Credential MyUserName
+        Build-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\UMNAutopackager\GlobalConfig.json) -PackageConfig (Get-UMNGlobalConfig -Path C:\UMNAutopackager\PackageConfig.json) -Credential MyUserName
         Runs the function prompting for the credentials of MyUserName.
     .EXAMPLE
-        Build-MEMCMPackage -GlobalConfig $globaljson -PackageDefinition $pkgjson -Credential $creds
+        Build-MEMCMPackage -GlobalConfig $globaljson -PackageConfig $pkgjson -Credential $creds
         Runs the function using the credentials stored in the $creds variable.
     #>
     [CmdletBinding()]
@@ -27,8 +27,8 @@ function Build-MEMCMPackage {
 
         [Parameter(Mandatory = $true,
 
-            HelpMessage = "Input the values of the various packagedefinition.json files.")]
-        [psobject[]]$PackageDefinition,
+            HelpMessage = "Input the values of the various PackageConfig.json files.")]
+        [psobject[]]$PackageConfig,
 
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
@@ -61,7 +61,7 @@ function Build-MEMCMPackage {
         }
         Push-Location
         Set-Location -Path "$SiteCode`:\"
-        foreach ($PkgObject in $PackageDefinition) {
+        foreach ($PkgObject in $PackageConfig) {
             # Replace Pre/Post App Name Variables
             #$PackgingTargetVariables = [hashtable]@{
             #    "{preAppName}"  = $PkgObject.PreAppName
