@@ -56,7 +56,7 @@ function Build-MEMCMPackage {
             }
         }
         catch {
-            Write-Error $Error[0]
+            Write-Error $_
             Write-Warning -Message "Error: $($_.Exception.Message)"
         }
         Push-Location
@@ -106,7 +106,7 @@ function Build-MEMCMPackage {
                     New-CMApplication @ApplicationArguments
                 }
                 catch {
-                    Write-Error $Error[0]
+                    Write-Error $_
                     Write-Warning -Message "Error: $($_.Exception.Message)"
                 }
                 # Building hashtable with all values to us in the DeploymentType creation functions
@@ -205,7 +205,7 @@ function Build-MEMCMPackage {
                                     Add-CMScriptDeploymentType @DeploymentTypeArguments
                                 }
                                 catch {
-                                    Write-Error $Error[0]
+                                    Write-Error $_
                                     Write-Warning -Message "Error: $($_.Exception.Message)"
                                 }
                             }
@@ -215,7 +215,7 @@ function Build-MEMCMPackage {
                                     Add-CMMsiDeploymentType @DeploymentTypeArguments
                                 }
                                 catch {
-                                    Write-Error $Error[0]
+                                    Write-Error $_
                                     Write-Warning -Message "Error: $($_.Exception.Message)"
                                 }
                             }
@@ -248,7 +248,7 @@ function Build-MEMCMPackage {
                                     Set-CMScriptDeploymentType @DeploymentTypeArguments
                                 }
                                 catch {
-                                    Write-Error $Error[0]
+                                    Write-Error $_
                                     Write-Warning -Message "Error: $($_.Exception.Message)"
                                 }
                             }
@@ -258,7 +258,7 @@ function Build-MEMCMPackage {
                                     Set-CMMsiDeploymentType @DeploymentTypeArguments
                                 }
                                 catch {
-                                    Write-Error $Error[0]
+                                    Write-Error $_
                                     Write-Warning -Message "Error: $($_.Exception.Message)"
                                 }
                             }
@@ -272,7 +272,7 @@ function Build-MEMCMPackage {
                         Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointName $PkgObject.packagingTargets.deploymentPoints.dpNames -ErrorAction Stop
                     }
                     catch {
-                        Write-Error $Error[0]
+                        Write-Error $_
                         Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
                 }
@@ -282,7 +282,7 @@ function Build-MEMCMPackage {
                         Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointName $SiteTarget.deploymentPoints.dpNames -ErrorAction Stop
                     }
                     catch {
-                        Write-Error $Error[0]
+                        Write-Error $_
                         Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
                 }
@@ -295,7 +295,7 @@ function Build-MEMCMPackage {
                         Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointGroupName $pkgObject.packagingTargets.deploymentPoints.dpGroupNames -ErrorAction Stop
                     }
                     catch {
-                        Write-Error $Error[0]
+                        Write-Error $_
                         Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
                 }
@@ -305,7 +305,7 @@ function Build-MEMCMPackage {
                         Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointGroupName $SiteTarget.deploymentPoints.dpGroupNames -ErrorAction Stop
                     }
                     catch {
-                        Write-Error $Error[0]
+                        Write-Error $_
                         Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
                 }
