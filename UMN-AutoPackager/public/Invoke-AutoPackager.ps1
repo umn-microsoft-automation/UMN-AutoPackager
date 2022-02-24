@@ -51,7 +51,7 @@ function Invoke-AutoPackager {
                         $PackageConfigPath = "$($Recipe.FullName)\$($Recipe.Name).json"
                         $VariableHelperPath = "$($Recipe.FullName)\helpers\getVariables.ps1"
                         $DetectVersionPath = "$($Recipe.FullName)\detectVersion.ps1"
-                        $DeployAppPath = "$($Recipe.FullName)\packageApp.ps1"
+                        $PackageAppPath = "$($Recipe.FullName)\packageApp.ps1"
 
 
                         # Load json
@@ -106,7 +106,9 @@ function Invoke-AutoPackager {
                             if ($PackageApp) {
                                 if ($VersionCheck.update) {
                                     Write-Information -MessageData "New version found for $($Recipe.Name)"
-                                    . $DeployAppPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+                                    $GlobalAndPackageConfig = . $PackageAppPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+                                    $UpdatedGlobalConfig = $GlobalAndPackageConfig.GlobalConfig
+                                    $UpdatedPackageConfig = $GlobalAndPackageConfig.PackageConfig
                                 }
                                 else {
                                     Write-Information -MessageData "No new version for $($Recipe.Name)"
