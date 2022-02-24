@@ -1,7 +1,12 @@
 $Public = @( Get-ChildItem -Path $PSScriptRoot\public\*.ps1 -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\private\*.ps1 -ErrorAction SilentlyContinue )
 
-Add-Type -Path .\bin\UMN-AutoPackager.dll
+if (Test-Path -Path $PSScriptRoot\bin\UMN-AutoPackager.dll) {
+    Add-Type -Path $PSScriptRoot\bin\UMN-AutoPackager.dll
+}
+else {
+    throw "Cannot find $PSScriptRoot\bin\UMN-AutoPackager.dll"
+}
 
 # Global Config Path
 $GlobalConfigPath = "$($env:ProgramData)\UMN\AutoPackager\GlobalConfig.json"
