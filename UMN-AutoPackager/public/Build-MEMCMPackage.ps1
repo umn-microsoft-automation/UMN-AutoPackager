@@ -6,17 +6,17 @@ function Build-MEMCMPackage {
         This command creates an application for each site based on the values of the GlobalConfig and PackageConfig json values. It leverages various powershell commands provided with ConfigMgr.
     .PARAMETER GlobalConfig
         Input the global configuration json file using the Get-GlobalConfig command
-    .PARAMETER PackageDefinition
+    .PARAMETER PackageConfig
         Input the package definition json file using the Get-GlobalConfig command
     .PARAMETER Credential
         Input the credentials object or the user name which will prompt for credentials. If not called will attempt to use the credentials of the account that is running the script.
     .PARAMETER SiteTarget
         This is the PackagingTargets section of either the GlobalConfig or PackageConfig, whichever has the site info.
     .EXAMPLE
-        Build-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\UMNAutopackager\GlobalConfig.json) -PackageDefinition (Get-UMNGlobalConfig -Path C:\UMNAutopackager\PackageConfig.json) -Credential MyUserName
+        Build-MEMCMPackage -GlobalConfig (Get-UMNGlobalConfig -Path C:\UMNAutopackager\GlobalConfig.json) -PackageConfig (Get-UMNGlobalConfig -Path C:\UMNAutopackager\PackageConfig.json) -Credential MyUserName
         Runs the function prompting for the credentials of MyUserName.
     .EXAMPLE
-        Build-MEMCMPackage -GlobalConfig $globaljson -PackageDefinition $pkgjson -Credential $creds
+        Build-MEMCMPackage -GlobalConfig $globaljson -PackageConfig $pkgjson -Credential $creds
         Runs the function using the credentials stored in the $creds variable.
     #>
     [CmdletBinding()]
@@ -27,8 +27,8 @@ function Build-MEMCMPackage {
 
         [Parameter(Mandatory = $true,
 
-            HelpMessage = "Input the values of the various packagedefinition.json files.")]
-        [psobject[]]$PackageDefinition,
+            HelpMessage = "Input the values of the various PackageConfig.json files.")]
+        [psobject[]]$PackageConfig,
 
         [ValidateNotNull()]
         [System.Management.Automation.PSCredential]
@@ -56,12 +56,12 @@ function Build-MEMCMPackage {
             }
         }
         catch {
-            Write-Error $Error[0]
+            Write-Error $_
             Write-Warning -Message "Error: $($_.Exception.Message)"
         }
         Push-Location
         Set-Location -Path "$SiteCode`:\"
-        foreach ($PkgObject in $PackageDefinition) {
+        foreach ($PkgObject in $PackageConfig) {
             # Replace Pre/Post App Name Variables
             #$PackgingTargetVariables = [hashtable]@{
             #    "{preAppName}"  = $PkgObject.PreAppName
@@ -81,7 +81,7 @@ function Build-MEMCMPackage {
                     ReleaseDate          = $PkgObject.packagingTargets.datePublished
                     AddOwner             = $PkgObject.packagingTargets.owner
                     AutoInstall          = $PkgObject.packagingTargets.allowTSUsage
-                    IconLocationFile     = $PkgObject.packagingTargets.IconLocationFile
+                    IconLocationFile     = $PkgObject.packagingTargets.iconFilename
                     Keywords             = $PkgObject.packagingTargets.Keywords
                     Linktext             = $PkgObject.packagingTargets.userDocumentationText
                     LocalizedDescription = $PkgObject.packagingTargets.localizedDescription
@@ -106,7 +106,7 @@ function Build-MEMCMPackage {
                     New-CMApplication @ApplicationArguments
                 }
                 catch {
-                    Write-Error $Error[0]
+                    Write-Error $_
                     Write-Warning -Message "Error: $($_.Exception.Message)"
                 }
                 # Building hashtable with all values to us in the DeploymentType creation functions
@@ -120,7 +120,7 @@ function Build-MEMCMPackage {
                         Comment                   = $depType.adminComments
                         ContentFallback           = $deptype.contentFallback
                         ContentLocation           = $depType.ContentLocation
-                        DeploymentTypeName        = $PkgObject.packagingTargets.Name + " $($depType.Name)"
+                        DeploymentTypeName        = $depType.Name
                         EnableBranchCache         = $deptype.branchCache
                         EstimatedRuntimeMins      = $deptype.estimatedRuntime
                         Force32Bit                = $deptype.runAs32Bit
@@ -132,7 +132,7 @@ function Build-MEMCMPackage {
                         ScriptLanguage            = $depType.scriptLanguage
                         ScriptText                = $deptype.ScriptText
                         SlowNetworkDeploymentMode = $depType.onSlowNetwork
-                        #UninstallProgram          = $depType.uninstallCMD
+                        UninstallCommand          = $depType.uninstallCMD
                         UserInteractionmode       = $deptype.userInteraction
                         ErrorAction               = "Stop"
                     }
@@ -150,6 +150,7 @@ function Build-MEMCMPackage {
                     # Building hashtable with all the values to use with New or Set-CMDetectionClause functions
                     foreach ($detectionMethod in $depType.detectionMethods) {
                         Write-Verbose -Message "Processing the detection method: $($detectionMethod.type)"
+                        
                         $DetectionClauseArguments = @{
                             DirectoryName      = $detectionMethod.DirectoryName
                             Existence          = $detectionMethod.Existence
@@ -205,7 +206,7 @@ function Build-MEMCMPackage {
                                     Add-CMScriptDeploymentType @DeploymentTypeArguments
                                 }
                                 catch {
-                                    Write-Error $Error[0]
+                                    Write-Error $_
                                     Write-Warning -Message "Error: $($_.Exception.Message)"
                                 }
                             }
@@ -215,7 +216,7 @@ function Build-MEMCMPackage {
                                     Add-CMMsiDeploymentType @DeploymentTypeArguments
                                 }
                                 catch {
-                                    Write-Error $Error[0]
+                                    Write-Error $_
                                     Write-Warning -Message "Error: $($_.Exception.Message)"
                                 }
                             }
@@ -248,7 +249,7 @@ function Build-MEMCMPackage {
                                     Set-CMScriptDeploymentType @DeploymentTypeArguments
                                 }
                                 catch {
-                                    Write-Error $Error[0]
+                                    Write-Error $_
                                     Write-Warning -Message "Error: $($_.Exception.Message)"
                                 }
                             }
@@ -258,7 +259,7 @@ function Build-MEMCMPackage {
                                     Set-CMMsiDeploymentType @DeploymentTypeArguments
                                 }
                                 catch {
-                                    Write-Error $Error[0]
+                                    Write-Error $_
                                     Write-Warning -Message "Error: $($_.Exception.Message)"
                                 }
                             }
@@ -272,7 +273,7 @@ function Build-MEMCMPackage {
                         Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointName $PkgObject.packagingTargets.deploymentPoints.dpNames -ErrorAction Stop
                     }
                     catch {
-                        Write-Error $Error[0]
+                        Write-Error $_
                         Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
                 }
@@ -282,7 +283,7 @@ function Build-MEMCMPackage {
                         Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointName $SiteTarget.deploymentPoints.dpNames -ErrorAction Stop
                     }
                     catch {
-                        Write-Error $Error[0]
+                        Write-Error $_
                         Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
                 }
@@ -295,7 +296,7 @@ function Build-MEMCMPackage {
                         Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointGroupName $pkgObject.packagingTargets.deploymentPoints.dpGroupNames -ErrorAction Stop
                     }
                     catch {
-                        Write-Error $Error[0]
+                        Write-Error $_
                         Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
                 }
@@ -305,7 +306,7 @@ function Build-MEMCMPackage {
                         Start-CMContentDistribution -ApplicationName $PkgObject.packagingTargets.Name -DistributionPointGroupName $SiteTarget.deploymentPoints.dpGroupNames -ErrorAction Stop
                     }
                     catch {
-                        Write-Error $Error[0]
+                        Write-Error $_
                         Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
                 }

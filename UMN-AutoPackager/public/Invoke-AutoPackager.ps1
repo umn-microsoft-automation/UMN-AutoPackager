@@ -51,7 +51,7 @@ function Invoke-AutoPackager {
                         $PackageConfigPath = "$($Recipe.FullName)\$($Recipe.Name).json"
                         $VariableHelperPath = "$($Recipe.FullName)\helpers\getVariables.ps1"
                         $DetectVersionPath = "$($Recipe.FullName)\detectVersion.ps1"
-                        $DeployAppPath = "$($Recipe.FullName)\packageApp.ps1"
+                        $PackageAppPath = "$($Recipe.FullName)\packageApp.ps1"
 
 
                         # Load json
@@ -74,26 +74,41 @@ function Invoke-AutoPackager {
                             $SiteTargets = $UpdatedGlobalConfig.PackagingTargets
                         }
 
-                        # Check for newer version
-                        $VersionCheck = . $DetectVersionPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig
-                        $UpdatedPackageConfig.CurrentVersion = $VersionCheck.Version
-                        $UpdatedPackageConfig.ReplaceVariable("{currentVersion}", $VersionCheck.Version)
-
-                        Write-Debug -Message "Version Check: $($VersionCheck.ToString())"
-
                         foreach ($SiteTarget in $SiteTargets) {
-                            $GlobalVariables = [hashtable]@{
-                                "{preAppName}"             = $SiteTarget.preAppName
-                                "{postAppName}"            = $SiteTarget.postAppName
-                                "{applicationContentPath}" = $SiteTarget.ApplicationContentPath.LocalPath
+                            if (-not ($null -eq $SiteTarget.ApplicationContentPath.LocalPath)) {
+                                $GlobalVariables = [hashtable]@{
+                                    "{applicationContentPath}" = $SiteTarget.ApplicationContentPath.LocalPath
+                                }
                             }
+                            else {
+                                throw "ApplicationContentPath is not set in the global configuration or the package configuration.`nThis is a key value."
+                            }
+
+                            if (-not ($null -eq $SiteTarget.preAppName)) {
+                                $GlobalVariables["{preAppName}"] = $SiteTarget.preAppName
+                            }
+
+                            if (-not ($null -eq $SiteTarget.postAppName)) {
+                                $GlobalVariables["{postAppName}"] = $SiteTarget.postAppName
+                            }
+
+                            # Check for newer version
+                            $VersionCheck = . $DetectVersionPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+
+                            # Update Version in variables and in the config
+                            $UpdatedPackageConfig.CurrentVersion = $VersionCheck.Version
+                            $UpdatedPackageConfig.ReplaceVariable("{currentVersion}", $VersionCheck.Version)
+
+                            Write-Debug -Message "Version Check: $($VersionCheck.ToString())"
 
                             $UpdatedPackageConfig.ReplaceVariables($GlobalVariables)
 
                             if ($PackageApp) {
                                 if ($VersionCheck.update) {
                                     Write-Information -MessageData "New version found for $($Recipe.Name)"
-                                    . $DeployAppPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+                                    $GlobalAndPackageConfig = . $PackageAppPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+                                    $UpdatedGlobalConfig = $GlobalAndPackageConfig.GlobalConfig
+                                    $UpdatedPackageConfig = $GlobalAndPackageConfig.PackageConfig
                                 }
                                 else {
                                     Write-Information -MessageData "No new version for $($Recipe.Name)"
@@ -102,11 +117,13 @@ function Invoke-AutoPackager {
                             if ($SiteTarget.Type -eq "MEMCM-Application") {
                                 # Create Collections
                                 if ($CreateCollections) {
-                                    New-MEMCMCollections -GlobalConfig $GlobalConfig -SiteTarget $SiteTarget
+                                    Write-Information -MessageData "Creating Collections for $($Recipe.Name)"
+                                    New-MEMCMCollections -GlobalConfig $UpdatedGlobalConfig -SiteTarget $SiteTarget
                                 }
 
                                 if ($DeployApp) {
-                                    Deploy-MEMCMPackage -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget -Verbose
+                                    Write-Information -MessageData "Deploying Application for $($Recipe.Name)"
+                                    Deploy-MEMCMPackage -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
                                 }
                             }
                         }

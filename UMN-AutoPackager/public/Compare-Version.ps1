@@ -33,7 +33,7 @@ function Compare-Version {
     $NumberOnlyRegex = "^[0-9]+$"
 
     if ((($ReferenceVersion -match $SemVerRegex) -and ($DifferenceVersion -match $SemVerRegex)) -or (($ReferenceVersion -match $NumberOnlyRegex) -and ($DifferenceVersion -match $NumberOnlyRegex))) {
-        if ([System.Management.Automation.SemanticVersion]$ReferenceVersion -gt [System.Management.Automation.SemanticVersion]$DifferenceVersion) {
+        if ([System.Management.Automation.SemanticVersion]$ReferenceVersion -ge [System.Management.Automation.SemanticVersion]$DifferenceVersion) {
             return $false
         }
         else {
@@ -41,7 +41,7 @@ function Compare-Version {
         }
     }
     elseif (($ReferenceVersion -match $SystemVersionRegex) -and ($DifferenceVersion -match $SystemVersionRegex)) {
-        if ([System.Version]$ReferenceVersion -gt [System.Version]$DifferenceVersion) {
+        if ([System.Version]$ReferenceVersion -ge [System.Version]$DifferenceVersion) {
             return $false
         }
         else {
