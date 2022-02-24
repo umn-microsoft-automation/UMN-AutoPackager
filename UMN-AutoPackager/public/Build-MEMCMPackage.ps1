@@ -81,7 +81,7 @@ function Build-MEMCMPackage {
                     ReleaseDate          = $PkgObject.packagingTargets.datePublished
                     AddOwner             = $PkgObject.packagingTargets.owner
                     AutoInstall          = $PkgObject.packagingTargets.allowTSUsage
-                    IconLocationFile     = $PkgObject.packagingTargets.IconLocationFile
+                    IconLocationFile     = $PkgObject.packagingTargets.iconFilename
                     Keywords             = $PkgObject.packagingTargets.Keywords
                     Linktext             = $PkgObject.packagingTargets.userDocumentationText
                     LocalizedDescription = $PkgObject.packagingTargets.localizedDescription
