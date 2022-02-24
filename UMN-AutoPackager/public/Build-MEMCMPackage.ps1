@@ -120,7 +120,7 @@ function Build-MEMCMPackage {
                         Comment                   = $depType.adminComments
                         ContentFallback           = $deptype.contentFallback
                         ContentLocation           = $depType.ContentLocation
-                        DeploymentTypeName        = $PkgObject.packagingTargets.Name + " $($depType.Name)"
+                        DeploymentTypeName        = $depType.Name
                         EnableBranchCache         = $deptype.branchCache
                         EstimatedRuntimeMins      = $deptype.estimatedRuntime
                         Force32Bit                = $deptype.runAs32Bit
