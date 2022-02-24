@@ -117,11 +117,13 @@ function Invoke-AutoPackager {
                             if ($SiteTarget.Type -eq "MEMCM-Application") {
                                 # Create Collections
                                 if ($CreateCollections) {
-                                    New-MEMCMCollections -GlobalConfig $GlobalConfig -SiteTarget $SiteTarget
+                                    Write-Information -MessageData "Creating Collections for $($Recipe.Name)"
+                                    New-MEMCMCollections -GlobalConfig $UpdatedGlobalConfig -SiteTarget $SiteTarget
                                 }
 
                                 if ($DeployApp) {
-                                    Deploy-MEMCMPackage -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget -Verbose
+                                    Write-Information -MessageData "Deploying Application for $($Recipe.Name)"
+                                    Deploy-MEMCMPackage -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
                                 }
                             }
                         }
