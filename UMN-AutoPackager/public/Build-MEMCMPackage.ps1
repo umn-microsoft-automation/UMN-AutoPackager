@@ -132,7 +132,7 @@ function Build-MEMCMPackage {
                         ScriptLanguage            = $depType.scriptLanguage
                         ScriptText                = $deptype.ScriptText
                         SlowNetworkDeploymentMode = $depType.onSlowNetwork
-                        #UninstallProgram          = $depType.uninstallCMD
+                        UninstallCommand          = $depType.uninstallCMD
                         UserInteractionmode       = $deptype.userInteraction
                         ErrorAction               = "Stop"
                     }
