@@ -39,7 +39,7 @@ steps:
   displayName: 'Copy Files'
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)/UMN-AutoPackager'
-    contents: '*'
+    contents: '**'
     targetFolder: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager'
 - task: CmdLine@2
   displayName: 'Run CmdLine'
