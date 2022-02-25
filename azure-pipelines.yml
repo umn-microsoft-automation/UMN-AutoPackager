@@ -65,3 +65,4 @@ steps:
   inputs:
     targetType: 'inline'
     script: 'Get-Content -path $(Build.ArtifactStagingDirectory)/UMN-AutoPackager/UMN-AutoPackager.psd1'
+    pwsh: true
