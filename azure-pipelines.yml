@@ -13,6 +13,8 @@ pr:
     include:
       - main
 
+name: '1.$(Date:yyyy).$(Date:MM).$(Date:dd)$(Rev:r)' # Build number is 1.YYYY.MM.DDr (example 1.2022.02.251)
+
 pool:
   vmImage: windows-latest
 
@@ -45,3 +47,4 @@ steps:
   displayName: 'Run CmdLine'
   inputs:
     script: 'dir /b /s $(Build.ArtifactStagingDirectory)'
+- script: 'echo $(Build.BuildNumber)'
