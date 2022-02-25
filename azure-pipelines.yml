@@ -13,7 +13,16 @@ pr:
     include:
       - main
 
-name: '1.$(Date:yyyy).$(Date:MM).$(Date:dd)$(Rev:r)' # Build number is 1.YYYY.MM.DDr (example 1.2022.02.251)
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+    version: ''
+  ${{ elseif eq(variables['Build.SourceBranchName'], 'test') }}:
+    version: '-beta'
+  ${{ else }}:
+    version: '-alpha'
+
+# Revision number will be used to indicate patch, will need to manually increment major and minor versions.
+name: '1.0.$(Rev:r)$(version)' # Build number is 1.0.Rev (example 1.0.3)
 
 pool:
   vmImage: windows-latest
