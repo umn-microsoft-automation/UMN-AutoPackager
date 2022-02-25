@@ -61,4 +61,7 @@ steps:
   displayName: 'Run CmdLine'
   inputs:
     script: 'dir /b /s $(Build.ArtifactStagingDirectory)'
-- script: 'echo $(Build.BuildNumber)'
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: 'Get-Content -path $(Build.ArtifactStagingDirectory)/UMN-AutoPackager/UMN-AutoPackager.psd1'
