@@ -47,10 +47,11 @@ steps:
     arguments: '-o $(Build.ArtifactStagingDirectory)/UMN-AutoPackager/bin'
     zipAfterPublish: false
     modifyOutputPath: false
+    versioningScheme: 'byBuildNumber'
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: 'Update-ModuleManifest -Path $(Build.SourcesDirectory)/UMN-AutoPackager/UMN-AutoPackager.psd1 -ModuleVersion $(baseVersion) -PrivateData @{ PSData = @{ Prerelease = ''$(release)'' } }'
+    script: 'Update-ModuleManifest -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1" -ModuleVersion $(baseVersion) -PrivateData @{ PSData = @{ Prerelease = ''$(release)'' } }'
 - task: CopyFiles@2
   displayName: 'Copy Files'
   inputs:
