@@ -51,6 +51,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: 'Update-ModuleManifest -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1" -ModuleVersion $(($ENV:BUILD_BUILDNUMBER).Split(''-'')[0]) -PrivateData @{ PSData = @{ Prerelease = ''$(release)'' } }'
+    pwsh: true
 - task: CopyFiles@2
   displayName: 'Copy Files'
   inputs:
