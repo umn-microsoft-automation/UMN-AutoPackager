@@ -32,9 +32,15 @@ steps:
     command: 'publish'
     publishWebProjects: false
     projects: '**/*.csproj'
-    arguments: '-o $(Build.ArtifactStagingDirectory)/Output/bin'
+    arguments: '-o $(Build.ArtifactStagingDirectory)/UMN-AutoPackager/bin'
     zipAfterPublish: false
     modifyOutputPath: false
+- task: CopyFiles@2
+  displayName: 'Copy Files'
+  inputs:
+    sourceFolder: '$(Build.SourceDirectory)/UMN-AutoPackager'
+    contents: '*'
+    targetFolder: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager'
 - task: CmdLine@2
   displayName: 'Run CmdLine'
   inputs:
