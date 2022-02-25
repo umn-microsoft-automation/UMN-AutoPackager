@@ -14,6 +14,7 @@ pr:
       - main
 
 variables:
+  baseVersion: '1.0.$(Rev:r)'
   ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
     release: ''
   ${{ elseif eq(variables['Build.SourceBranchName'], 'test') }}:
@@ -22,7 +23,7 @@ variables:
     release: '-alpha'
 
 # Revision number will be used to indicate patch, will need to manually increment major and minor versions.
-name: '1.0.$(Rev:r)$(release)' # Build number is 1.0.Rev (example 1.0.3)
+name: '$(baseVersion)$(release)' # Build number is 1.0.Rev (example 1.0.3)
 
 pool:
   vmImage: windows-latest
@@ -46,6 +47,10 @@ steps:
     arguments: '-o $(Build.ArtifactStagingDirectory)/UMN-AutoPackager/bin'
     zipAfterPublish: false
     modifyOutputPath: false
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: 'Update-ModuleManifest -Path $(Build.SourcesDirectory)/UMN-AutoPackager/UMN-AutoPackager.psd1 -ModuleVersion $(baseVersion) -PrivateData @{ PSData = @{ Prerelease = ''$(release)'' } }'
 - task: CopyFiles@2
   displayName: 'Copy Files'
   inputs:
