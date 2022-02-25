@@ -38,7 +38,7 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Files'
   inputs:
-    sourceFolder: '$(Build.SourceDirectory)/UMN-AutoPackager'
+    sourceFolder: '$(Build.SourcesDirectory)/UMN-AutoPackager'
     contents: '*'
     targetFolder: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager'
 - task: CmdLine@2
