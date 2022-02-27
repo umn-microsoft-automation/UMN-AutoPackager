@@ -50,7 +50,7 @@ steps:
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: 'Update-ModuleManifest -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1" -ModuleVersion $(($ENV:BUILD_BUILDNUMBER).Split(''-'')[0]) -PrivateData @{ PSData = @{ Prerelease = ''$(release)'' } }'
+    script: 'Get-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1" | ForEach-Object { $_.Replace("{version}", "$(Build.BuildNumber)").Replace("{prerelease}", $(release)) } | Set-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"'
     pwsh: true
 - task: CopyFiles@2
   displayName: 'Copy Files'
@@ -58,6 +58,21 @@ steps:
     sourceFolder: '$(Build.SourcesDirectory)/UMN-AutoPackager'
     contents: '**'
     targetFolder: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager'
+- task: ArchiveFiles@2
+  displayName: 'Zip Up Module Directory'
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager$(Build.BuildNumber).zip'
+    replaceExistingArchive: true
+    verbose: true
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Build Artifacts'
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager$(Build.BuildNumber).zip'
+    artifactName: 'zip'
+    publishLocation: 'Container'
 - task: CmdLine@2
   displayName: 'Run CmdLine'
   inputs:

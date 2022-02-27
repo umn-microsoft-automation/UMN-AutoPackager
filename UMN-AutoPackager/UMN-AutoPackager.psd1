@@ -1,7 +1,7 @@
 @{
     RootModule        = 'UMN-AutoPackager.psm1'
     NestedModules     = @('bin\UMN-AutoPackager.dll')
-    ModuleVersion     = '0.0.1'
+    ModuleVersion     = '{version}'
     GUID              = '9dff7a8a-115f-42be-8dd2-6b946dc9d9e4'
     Author            = 'Jeff Bolduan, Matt Thoen, Greg Slavik'
     CompanyName       = 'University of Minnesota'
@@ -13,10 +13,13 @@
     VariablesToExport = '*'
     AliasesToExport   = '*'
     PrivateData       = @{
-        Tags         = @('Automation', 'MEMCM', 'SCCM', 'Intune', 'UMN')
-        LicenseUri   = 'https://github.com/umn-microsoft-automation/UMN-AutoPackager/blob/main/LICENSE'
-        ProjectUri   = 'https://github.com/umn-microsoft-automation/UMN-AutoPackager/'
-        # IconUri = ''
-        ReleaseNotes = 'https://github.com/umn-microsoft-automation/UMN-AutoPackager/releases/latest'
+        PSData = @{
+            Tags         = @('Automation', 'MEMCM', 'SCCM', 'Intune', 'UMN')
+            LicenseUri   = 'https://github.com/umn-microsoft-automation/UMN-AutoPackager/blob/main/LICENSE'
+            ProjectUri   = 'https://github.com/umn-microsoft-automation/UMN-AutoPackager/'
+            # IconUri = ''
+            ReleaseNotes = 'https://github.com/umn-microsoft-automation/UMN-AutoPackager/releases/latest'
+            Prerelease   = '{prerelease}'
+        }
     }
 }
