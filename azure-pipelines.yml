@@ -93,3 +93,13 @@ steps:
     targetType: 'inline'
     script: 'Get-Content -path $(Build.ArtifactStagingDirectory)/UMN-AutoPackager/UMN-AutoPackager.psd1'
     pwsh: true
+
+- task: NuGetAuthenticate@0
+  displayName: 'NuGet Authenticate'
+
+- task: PowerShell@2
+  displayName: 'Publish NuGet Package'
+  inputs:
+    targetType: 'inline'
+    script: 'Publish-Module -Path "$(Build.ArtifactsStagingDirectory/UMN-AutoPackager" -Repository UMN-Internal -NuGetApiKey "AzureDevOps" -Force -Verbose'
+    pwsh: true
