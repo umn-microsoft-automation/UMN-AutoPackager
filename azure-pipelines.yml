@@ -32,7 +32,10 @@ steps:
   displayName: 'Setup Powershell Environment'
   inputs:
     targetType: 'inline'
-    script: 'Install-PackageProvider -Name "NuGet" -MinimumVersion "2.8.5.201" -Force; Install-Module -Name PowerShellGet -Force'
+    script: |
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      Install-PackageProvider -Name "NuGet" -MinimumVersion "2.8.5.201" -Force
+      Install-Module -Name PowerShellGet -Force
     pwsh: true
 
 - task: NuGetToolInstaller@1
