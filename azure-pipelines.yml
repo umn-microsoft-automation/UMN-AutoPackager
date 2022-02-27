@@ -29,16 +29,19 @@ pool:
 
 steps:
 - task: NuGetToolInstaller@1
-  displayName: 'NuGet Tool Installer'
+  displayName: 'Install NuGet Tools'
+
 - task: DotNetCoreInstaller@1
-  displayName: 'DotNet Core Installer'
+  displayName: 'Install DotNet Core'
+
 - task: UseDotNet@2
-  displayName: 'Use DotNet'
+  displayName: 'Set DotNet Core to 5.0.x SDK'
   inputs:
     packageType: 'sdk'
     version: '5.0.x'
+
 - task: DotNetCoreCLI@2
-  displayName: 'dotnet publish'
+  displayName: 'Publish DotNet Module'
   inputs:
     command: 'publish'
     publishWebProjects: false
@@ -47,17 +50,21 @@ steps:
     zipAfterPublish: false
     modifyOutputPath: false
     versioningScheme: 'byBuildNumber'
+
 - task: PowerShell@2
+  displayName: 'Set ModuleVersion and Prerelease'
   inputs:
     targetType: 'inline'
-    script: '$Content = Get-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"; $Content | ForEach-Object { $_.Replace("{version}", "$(Build.BuildNumber)").Replace("''{prerelease}''", "''$(release)''") } | Set-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"'
+    script: '$ModuleVersion = ($(Build.BuildNumber)).Split("-")[0]; $Content = Get-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"; $Content | ForEach-Object { $_.Replace("{version}", "$ModuleVersion").Replace("''{prerelease}''", "''$(release)''") } | Set-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"'
     pwsh: true
+
 - task: CopyFiles@2
-  displayName: 'Copy Files'
+  displayName: 'Copy Powershell Module Files to Staging Directory'
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)/UMN-AutoPackager'
     contents: '**'
     targetFolder: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager'
+
 - task: ArchiveFiles@2
   displayName: 'Zip Up Module Directory'
   inputs:
@@ -67,17 +74,21 @@ steps:
     archiveFile: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager$(Build.BuildNumber).zip'
     replaceExistingArchive: true
     verbose: true
+
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Build Artifacts'
   inputs:
     pathToPublish: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager$(Build.BuildNumber).zip'
     artifactName: 'zip'
     publishLocation: 'Container'
+
 - task: CmdLine@2
   displayName: 'Run CmdLine'
   inputs:
     script: 'dir /b /s $(Build.ArtifactStagingDirectory)'
+
 - task: PowerShell@2
+  displayName: 'Output Module File for Review'
   inputs:
     targetType: 'inline'
     script: 'Get-Content -path $(Build.ArtifactStagingDirectory)/UMN-AutoPackager/UMN-AutoPackager.psd1'
