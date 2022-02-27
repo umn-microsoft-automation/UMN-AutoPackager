@@ -119,7 +119,7 @@ steps:
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-    publishVstsFeed: 'umn-microsoft/UMN-Internal'
+    publishVstsFeed: 'UMN-Internal'
     allowPackageConflicts: false
 
 - task: CmdLine@2
