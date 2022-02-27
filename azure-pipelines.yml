@@ -101,5 +101,5 @@ steps:
   displayName: 'Publish NuGet Package'
   inputs:
     targetType: 'inline'
-    script: 'Publish-Module -Path "$(Build.ArtifactsStagingDirectory/UMN-AutoPackager" -Repository UMN-Internal -NuGetApiKey "AzureDevOps" -Force -Verbose'
+    script: 'Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository UMN-Internal -NuGetApiKey "AzureDevOps" -Force -Verbose'
     pwsh: true
