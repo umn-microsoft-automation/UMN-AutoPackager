@@ -55,7 +55,7 @@ steps:
   displayName: 'Set ModuleVersion and Prerelease'
   inputs:
     targetType: 'inline'
-    script: '$ModuleVersion = ($(Build.BuildNumber)).Split("-")[0]; $Content = Get-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"; $Content | ForEach-Object { $_.Replace("{version}", "$ModuleVersion").Replace("''{prerelease}''", "''$(release)''") } | Set-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"'
+    script: '$ModuleVersion = ("$(Build.BuildNumber)").Split("-")[0]; $Content = Get-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"; $Content | ForEach-Object { $_.Replace("{version}", "$ModuleVersion").Replace("''{prerelease}''", "''$(release)''") } | Set-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"'
     pwsh: true
 
 - task: CopyFiles@2
