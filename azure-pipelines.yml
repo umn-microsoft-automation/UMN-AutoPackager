@@ -93,11 +93,6 @@ steps:
     artifactName: 'zip'
     publishLocation: 'Container'
 
-- task: CmdLine@2
-  displayName: 'Run CmdLine'
-  inputs:
-    script: 'dir /b /s $(Build.ArtifactStagingDirectory)'
-
 - task: PowerShell@2
   displayName: 'Output Module File for Review'
   inputs:
@@ -112,5 +107,14 @@ steps:
   displayName: 'Publish NuGet Package'
   inputs:
     targetType: 'inline'
-    script: 'Get-PSRepository; Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository UMN-Internal -NuGetApiKey "AzureDevOps" -Force -Verbose'
+    script: |
+      New-Item -ItemType Directory -Path "$(Build.ArtifactStagingDirectory)/PSRepo" -Force
+      Register-PSRepository -Name "LocalPSRepo" -SourceLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -PublishLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -InstallationPolicy Trusted
+      Get-PSRepository
+      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository LocalPSRepo -NuGetApiKey "AzureDevOps" -Force -Verbose
     pwsh: true
+
+- task: CmdLine@2
+  displayName: 'Run CmdLine'
+  inputs:
+    script: 'dir /b /s $(Build.ArtifactStagingDirectory)'
