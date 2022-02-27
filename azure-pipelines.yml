@@ -28,6 +28,13 @@ pool:
   vmImage: windows-latest
 
 steps:
+- task: PowerShell@2
+  displayName: 'Setup Powershell Environment'
+  inputs:
+    targetType: 'inline'
+    script: 'Install-PackageProvider -Name "NuGet" -MinimumVersion "2.8.5.201" -Force; Install-Module -Name PowerShellGet -Force'
+    pwsh: true
+
 - task: NuGetToolInstaller@1
   displayName: 'Install NuGet Tools'
 
@@ -101,5 +108,5 @@ steps:
   displayName: 'Publish NuGet Package'
   inputs:
     targetType: 'inline'
-    script: 'Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository UMN-Internal -NuGetApiKey "AzureDevOps" -Force -Verbose'
+    script: 'Get-PSRepository; Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository UMN-Internal -NuGetApiKey "AzureDevOps" -Force -Verbose'
     pwsh: true
