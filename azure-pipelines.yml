@@ -50,7 +50,7 @@ steps:
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: 'Get-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1" | ForEach-Object { $_.Replace("{version}", "$(Build.BuildNumber)").Replace("''{prerelease}''", "''$(release))''" } | Set-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"'
+    script: 'Get-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1" | ForEach-Object { $_.Replace("{version}", "$(Build.BuildNumber)").Replace("''{prerelease}''", "''$(release)''") } | Set-Content -Path "$($ENV:BUILD_SOURCESDIRECTORY)/UMN-AutoPackager/UMN-AutoPackager.psd1"'
     pwsh: true
 - task: CopyFiles@2
   displayName: 'Copy Files'
