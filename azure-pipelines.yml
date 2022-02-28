@@ -122,6 +122,31 @@ steps:
     publishVstsFeed: 'UMN-Internal'
     allowPackageConflicts: false
 
+- task: GitHubRelease@0
+  displayName: 'Create GitHub Release'
+  condition: 'eq(variables.release, '')'
+  inputs:
+    githubConnection: 'umn-microsoft-automation'
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'auto'
+    prerelease: true
+    addChangeLog: true
+    compareWith: 'lastFullRelease'
+
+- task: GitHubRelease@0
+  displayName: 'Create GitHub Prerelease'
+  condition: 'or(eq(variables.release, '-beta'), eq(variables.release, '-alpha'))'
+  inputs:
+    githubConnection: 'umn-microsoft-automation'
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'auto'
+    addChangeLog: true
+    compareWith: 'lastFullRelease'
+
 - task: CmdLine@2
   displayName: 'Run CmdLine'
   inputs:
