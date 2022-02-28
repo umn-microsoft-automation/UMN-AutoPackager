@@ -10,13 +10,6 @@ trigger:
       - 'beta'
       - 'alpha'
 
-pr:
-  branches:
-    include:
-      - 'main'
-      - 'beta'
-      - 'alpha'
-
 variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
     release: ''
