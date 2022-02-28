@@ -98,19 +98,24 @@ steps:
 - task: NuGetAuthenticate@0
   displayName: 'NuGet Authenticate'
 
-- task: PowerShell@2
+- pwsh: Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -NuGetApiKey $env:GalleryKey
   displayName: 'Publish NuGet Package'
   env:
     GalleryKey: $(PowershellGalleryKey)
-  inputs:
-    targetType: 'inline'
-    script: |
-      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -NuGetApiKey $env:GalleryKey -Verbose -Force"
-      $null = New-Item -ItemType Directory -Path "$(Build.ArtifactStagingDirectory)/PSRepo" -Force
-      Register-PSRepository -Name "LocalPSRepo" -SourceLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -PublishLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -InstallationPolicy Trusted
-      Get-PSRepository
-      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository LocalPSRepo -NuGetApiKey "AzureDevOps" -Force
-    pwsh: true
+  
+#- task: PowerShell@2
+#  displayName: 'Publish NuGet Package'
+#  env:
+#    GalleryKey: $(PowershellGalleryKey)
+#  inputs:
+#    targetType: 'inline'
+#    script: |
+#      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -NuGetApiKey $env:GalleryKey -Verbose -Force"
+#      $null = New-Item -ItemType Directory -Path "$(Build.ArtifactStagingDirectory)/PSRepo" -Force
+#      Register-PSRepository -Name "LocalPSRepo" -SourceLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -PublishLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -InstallationPolicy Trusted
+#      Get-PSRepository
+#      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository LocalPSRepo -NuGetApiKey "AzureDevOps" -Force
+#    pwsh: true
 
 - task: NugetCommand@2
   displayName: 'Publish to NuGet Feed'
