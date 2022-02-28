@@ -8,11 +8,6 @@ trigger:
     include:
       - '*' # Trigger builds on all branches
 
-pr:
-  branches:
-    include:
-      - main
-
 variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
     release: ''
@@ -112,7 +107,7 @@ steps:
       Register-PSRepository -Name "LocalPSRepo" -SourceLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -PublishLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -InstallationPolicy Trusted
       Get-PSRepository
       Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository LocalPSRepo -NuGetApiKey "AzureDevOps" -Force
-      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -NuGetApiKey "$($env:PowershellGalleryKey)"
+      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -NuGetApiKey "$(PowershellGalleryKey)"
     pwsh: true
 
 - task: NugetCommand@2
