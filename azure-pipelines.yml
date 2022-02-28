@@ -130,10 +130,14 @@ steps:
     repositoryName: '$(Build.Repository.Name)'
     action: 'create'
     target: '$(Build.SourceVersion)'
+    tag: '$(Build.BuildNumber)'
     tagSource: 'auto'
     prerelease: true
     addChangeLog: true
     compareWith: 'lastFullRelease'
+    assets: |
+      $(Build.ArtifactStagingDirectory)/*.zip
+      $(Build.ArtifactStagingDirectory)/**/*.nupkg
 
 - task: GitHubRelease@0
   displayName: 'Create GitHub Prerelease'
@@ -143,9 +147,13 @@ steps:
     repositoryName: '$(Build.Repository.Name)'
     action: 'create'
     target: '$(Build.SourceVersion)'
+    tag: '$(Build.BuildNumber)'
     tagSource: 'auto'
     addChangeLog: true
     compareWith: 'lastFullRelease'
+    assets: |
+      $(Build.ArtifactStagingDirectory)/*.zip
+      $(Build.ArtifactStagingDirectory)/**/*.nupkg
 
 - task: CmdLine@2
   displayName: 'Run CmdLine'
