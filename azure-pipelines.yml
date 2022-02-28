@@ -9,12 +9,17 @@ trigger:
       - 'main'
       - 'beta'
       - 'alpha'
+  pr:
+    include:
+      - 'main'
+      - 'beta'
+      - 'alpha'
 
 variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
     release: ''
     releaseWordOnly: ''
-  ${{ elseif eq(variables['Build.SourceBranchName'], 'test') }}:
+  ${{ elseif eq(variables['Build.SourceBranchName'], 'beta') }}:
     release: '-beta'
     releaseWordOnly: 'beta'
   ${{ else }}:
