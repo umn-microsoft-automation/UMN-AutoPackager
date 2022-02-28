@@ -105,7 +105,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -NuGetApiKey "$(${env:GalleryKey})" -Verbose -Force"
+      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -NuGetApiKey $env:GalleryKey -Verbose -Force"
       $null = New-Item -ItemType Directory -Path "$(Build.ArtifactStagingDirectory)/PSRepo" -Force
       Register-PSRepository -Name "LocalPSRepo" -SourceLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -PublishLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -InstallationPolicy Trusted
       Get-PSRepository
