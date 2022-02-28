@@ -124,7 +124,7 @@ steps:
 
 - task: GitHubRelease@0
   displayName: 'Create GitHub Release'
-  condition: 'eq(variables.release, '')'
+  condition: eq(variables.release, '')
   inputs:
     githubConnection: 'umn-microsoft-automation'
     repositoryName: '$(Build.Repository.Name)'
@@ -137,7 +137,7 @@ steps:
 
 - task: GitHubRelease@0
   displayName: 'Create GitHub Prerelease'
-  condition: 'or(eq(variables.release, '-beta'), eq(variables.release, '-alpha'))'
+  condition: or(eq(variables.release, '-beta'), eq(variables.release, '-alpha'))
   inputs:
     githubConnection: 'umn-microsoft-automation'
     repositoryName: '$(Build.Repository.Name)'
