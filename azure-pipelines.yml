@@ -154,6 +154,7 @@ steps:
     assets: |
       $(Build.ArtifactStagingDirectory)/*.zip
       $(Build.ArtifactStagingDirectory)/**/*.nupkg
+    isPreRelease: true
 
 - task: CmdLine@2
   displayName: 'Run CmdLine'
