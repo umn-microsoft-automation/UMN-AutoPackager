@@ -1,0 +1,160 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+      - '*' # Trigger builds on all branches
+
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+    release: ''
+  ${{ elseif eq(variables['Build.SourceBranchName'], 'test') }}:
+    release: '-beta'
+  ${{ else }}:
+    release: '-alpha'
+
+# Revision number will be used to indicate patch, will need to manually increment major and minor versions.
+name: '1.0.$(Rev:r)$(release)' # Build number is 1.0.Rev (example 1.0.3)
+
+pool:
+  vmImage: windows-latest
+
+steps:
+- task: PowerShell@2
+  displayName: 'Setup Powershell Environment'
+  inputs:
+    targetType: 'inline'
+    script: |
+      Install-Module -Name PowerShellGet -Force
+    pwsh: true
+
+- task: NuGetToolInstaller@1
+  displayName: 'Install NuGet Tools'
+
+- task: DotNetCoreInstaller@1
+  displayName: 'Install DotNet Core'
+
+- task: UseDotNet@2
+  displayName: 'Set DotNet Core to 5.0.x SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '5.0.x'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish DotNet Module'
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: '**/*.csproj'
+    arguments: '-o $(Build.ArtifactStagingDirectory)/UMN-AutoPackager/bin'
+    zipAfterPublish: false
+    modifyOutputPath: false
+    versioningScheme: 'byBuildNumber'
+
+- task: PowerShell@2
+  displayName: 'Set ModuleVersion and Prerelease'
+  inputs:
+    targetType: 'inline'
+    script: |
+      $ModuleVersion = ("$(Build.BuildNumber)").Split("-")[0]
+      $Content = Get-Content -Path "$(Build.SourcesDirectory)/UMN-AutoPackager/UMN-AutoPackager.psd1"
+      $Content | ForEach-Object { $_.Replace("{version}", "$ModuleVersion").Replace("'{prerelease}'", "'$(release)'".TrimStart("-")) } | Set-Content -Path "$(Build.SourcesDirectory)/UMN-AutoPackager/UMN-AutoPackager.psd1"
+    pwsh: true
+
+- task: CopyFiles@2
+  displayName: 'Copy Powershell Module Files to Staging Directory'
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)/UMN-AutoPackager'
+    contents: '**'
+    targetFolder: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager'
+
+- task: ArchiveFiles@2
+  displayName: 'Zip Up Module Directory'
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager$(Build.BuildNumber).zip'
+    replaceExistingArchive: true
+    verbose: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Build Artifacts'
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)/UMN-AutoPackager$(Build.BuildNumber).zip'
+    artifactName: 'zip'
+    publishLocation: 'Container'
+
+- task: PowerShell@2
+  displayName: 'Output Module File for Review'
+  inputs:
+    targetType: 'inline'
+    script: 'Get-Content -path $(Build.ArtifactStagingDirectory)/UMN-AutoPackager/UMN-AutoPackager.psd1'
+    pwsh: true
+
+- task: NuGetAuthenticate@0
+  displayName: 'NuGet Authenticate'
+
+- task: PowerShell@2
+  displayName: 'Publish NuGet Package'
+  env:
+    POWERSHELL_GALLERY_KEY: $(PowershellGalleryKey)
+  inputs:
+    targetType: 'inline'
+    script: |
+      $null = New-Item -ItemType Directory -Path "$(Build.ArtifactStagingDirectory)/PSRepo" -Force
+      Register-PSRepository -Name "LocalPSRepo" -SourceLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -PublishLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -InstallationPolicy Trusted
+      Get-PSRepository
+      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository LocalPSRepo -NuGetApiKey "AzureDevOps" -Force
+      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -NuGetApiKey "$ENV:POWERSHELL_GALLERY_KEY" -Repository "PSGallery -Verbose -Force"
+    pwsh: true
+
+- task: NugetCommand@2
+  displayName: 'Publish to NuGet Feed'
+  inputs:
+    command: 'push'
+    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+    publishVstsFeed: 'UMN-Internal'
+    allowPackageConflicts: false
+
+- task: GitHubRelease@0
+  displayName: 'Create GitHub Release'
+  condition: eq(variables.release, '')
+  inputs:
+    githubConnection: 'github.com'
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tag: '$(Build.BuildNumber)'
+    tagSource: 'manual'
+    prerelease: true
+    addChangeLog: true
+    compareWith: 'lastFullRelease'
+    assets: |
+      $(Build.ArtifactStagingDirectory)/*.zip
+      $(Build.ArtifactStagingDirectory)/**/*.nupkg
+
+- task: GitHubRelease@0
+  displayName: 'Create GitHub Prerelease'
+  condition: or(eq(variables.release, '-beta'), eq(variables.release, '-alpha'))
+  inputs:
+    githubConnection: 'github.com'
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tag: '$(Build.BuildNumber)'
+    tagSource: 'manual'
+    addChangeLog: true
+    compareWith: 'lastFullRelease'
+    assets: |
+      $(Build.ArtifactStagingDirectory)/*.zip
+      $(Build.ArtifactStagingDirectory)/**/*.nupkg
+    isPreRelease: true
+
+- task: CmdLine@2
+  displayName: 'Run CmdLine'
+  inputs:
+    script: 'dir /b /s $(Build.ArtifactStagingDirectory)'
