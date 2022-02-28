@@ -126,7 +126,7 @@ steps:
   displayName: 'Create GitHub Release'
   condition: eq(variables.release, '')
   inputs:
-    githubConnection: 'umn-microsoft-automation'
+    githubConnection: 'github.com'
     repositoryName: '$(Build.Repository.Name)'
     action: 'create'
     target: '$(Build.SourceVersion)'
@@ -139,7 +139,7 @@ steps:
   displayName: 'Create GitHub Prerelease'
   condition: or(eq(variables.release, '-beta'), eq(variables.release, '-alpha'))
   inputs:
-    githubConnection: 'umn-microsoft-automation'
+    githubConnection: 'github.com'
     repositoryName: '$(Build.Repository.Name)'
     action: 'create'
     target: '$(Build.SourceVersion)'
