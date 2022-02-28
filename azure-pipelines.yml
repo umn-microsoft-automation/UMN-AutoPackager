@@ -9,11 +9,12 @@ trigger:
       - 'main'
       - 'beta'
       - 'alpha'
-  pr:
-    include:
-      - 'main'
-      - 'beta'
-      - 'alpha'
+
+pr:
+  include:
+    - 'main'
+    - 'beta'
+    - 'alpha'
 
 variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
