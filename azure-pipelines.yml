@@ -6,7 +6,9 @@
 trigger:
   branches:
     include:
-      - '*' # Trigger builds on all branches
+      - 'main'
+      - 'beta'
+      - 'alpha'
 
 variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
