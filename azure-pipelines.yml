@@ -131,7 +131,7 @@ steps:
     action: 'create'
     target: '$(Build.SourceVersion)'
     tag: '$(Build.BuildNumber)'
-    tagSource: 'auto'
+    tagSource: 'manual'
     prerelease: true
     addChangeLog: true
     compareWith: 'lastFullRelease'
@@ -148,7 +148,7 @@ steps:
     action: 'create'
     target: '$(Build.SourceVersion)'
     tag: '$(Build.BuildNumber)'
-    tagSource: 'auto'
+    tagSource: 'manual'
     addChangeLog: true
     compareWith: 'lastFullRelease'
     assets: |
