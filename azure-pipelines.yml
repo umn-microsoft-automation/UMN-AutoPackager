@@ -112,6 +112,7 @@ steps:
       Register-PSRepository -Name "LocalPSRepo" -SourceLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -PublishLocation "$(Build.ArtifactStagingDirectory)/PSRepo" -InstallationPolicy Trusted
       Get-PSRepository
       Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository LocalPSRepo -NuGetApiKey "AzureDevOps" -Force
+      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -NuGetApiKey "$($env:PowershellGalleryKey)"
     pwsh: true
 
 - task: NugetCommand@2
