@@ -10,6 +10,8 @@ trigger:
       - 'beta'
       - 'alpha'
 
+pr: none
+
 variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
     release: ''
@@ -100,8 +102,8 @@ steps:
     script: 'Get-Content -path $(Build.ArtifactStagingDirectory)/UMN-AutoPackager/UMN-AutoPackager.psd1'
     pwsh: true
 
-- task: NuGetAuthenticate@0
-  displayName: 'NuGet Authenticate'
+# - task: NuGetAuthenticate@0
+#   displayName: 'NuGet Authenticate'
 
 - pwsh: Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -NuGetApiKey $env:GalleryKey
   displayName: 'Publish NuGet Package'
@@ -122,13 +124,13 @@ steps:
 #      Publish-Module -Path "$(Build.ArtifactStagingDirectory)/UMN-AutoPackager" -Repository LocalPSRepo -NuGetApiKey "AzureDevOps" -Force
 #    pwsh: true
 
-- task: NugetCommand@2
-  displayName: 'Publish to NuGet Feed'
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-    publishVstsFeed: 'UMN-Internal'
-    allowPackageConflicts: false
+# - task: NugetCommand@2
+#   displayName: 'Publish to NuGet Feed'
+#   inputs:
+#     command: 'push'
+#     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+#     publishVstsFeed: 'UMN-Internal'
+#     allowPackageConflicts: false
 
 - task: GitHubRelease@0
   displayName: 'Create GitHub Release'
