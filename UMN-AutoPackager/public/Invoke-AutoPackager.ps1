@@ -35,7 +35,7 @@ function Invoke-AutoPackager {
 
         if ($RecipeLocation.LocationType -eq "directory") {
             # Get all recipe directories
-            $RecipeDirs = Get-ChildItem -Path $($RecipeLocation.LocationUri.AbsolutePath) -Directory
+            $RecipeDirs = Get-ChildItem -Path $($RecipeLocation.LocationUri.AbsolutePath) -Directory -Exclude @(".*", "_*")
 
             # If directory empty, write error
             if ($RecipeDirs.Count -lt 1) {
