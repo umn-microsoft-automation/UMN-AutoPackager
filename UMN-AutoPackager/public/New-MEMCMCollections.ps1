@@ -21,6 +21,8 @@ function New-MEMCMCollections {
     param (
         $GlobalConfig,
 
+        $PackageConfig,
+
         $SiteTarget,
 
         [ValidateNotNull()]
@@ -88,16 +90,16 @@ function New-MEMCMCollections {
                         else {
                             Write-Verbose -Message "No periodic matches found"
                         }
+                    }
 
-                        # Create the periodic collection
-                        Write-Verbose -Message "Creating the collection: $($Collection.Name)"
-                        try {
-                            New-CMCollection @CollectionArguments
-                        }
-                        catch {
-                            Write-Error $Error[0]
-                            Write-Warning -Message "Error: $($_.Exception.Message)"
-                        }
+                    # Create the periodic collection
+                    Write-Verbose -Message "Creating the collection: $($Collection.Name)"
+                    try {
+                        New-CMCollection @CollectionArguments
+                    }
+                    catch {
+                        Write-Error $Error[0]
+                        Write-Warning -Message "Error: $($_.Exception.Message)"
                     }
                 }
                 else {

@@ -63,7 +63,7 @@ function Invoke-AutoPackager {
                         # Set up new package and global config variables based on the variable replacements defined in the package variables
                         # Need to copy then update because of how update works.
                         $UpdatedPackageConfig = $PackageConfig
-                        $UpdatedGlobalConfig = $GlobalConfig
+                        $UpdatedGlobalConfig = Get-UMNGlobalConfig -Path $GlobalConfigPath
                         $UpdatedPackageConfig.ReplaceVariables($PackageVariables)
                         $UpdatedGlobalConfig.ReplaceVariables($PackageVariables)
 
@@ -93,7 +93,7 @@ function Invoke-AutoPackager {
                             }
 
                             # Check for newer version
-                            $VersionCheck = . $DetectVersionPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+                            $VersionCheck = . $DetectVersionPath -GlobalConfig $GlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
 
                             # Update Version in variables and in the config
                             $UpdatedPackageConfig.CurrentVersion = $VersionCheck.Version
@@ -106,7 +106,7 @@ function Invoke-AutoPackager {
                             if ($PackageApp) {
                                 if ($VersionCheck.update) {
                                     Write-Information -MessageData "New version found for $($Recipe.Name)"
-                                    $GlobalAndPackageConfig = . $PackageAppPath -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+                                    $GlobalAndPackageConfig = . $PackageAppPath -GlobalConfig $GlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
                                     $UpdatedGlobalConfig = $GlobalAndPackageConfig.GlobalConfig
                                     $UpdatedPackageConfig = $GlobalAndPackageConfig.PackageConfig
                                 }
@@ -118,12 +118,12 @@ function Invoke-AutoPackager {
                                 # Create Collections
                                 if ($CreateCollections) {
                                     Write-Information -MessageData "Creating Collections for $($Recipe.Name)"
-                                    New-MEMCMCollections -GlobalConfig $UpdatedGlobalConfig -SiteTarget $SiteTarget
+                                    New-MEMCMCollections -GlobalConfig $GlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
                                 }
 
                                 if ($DeployApp) {
                                     Write-Information -MessageData "Deploying Application for $($Recipe.Name)"
-                                    Deploy-MEMCMPackage -GlobalConfig $UpdatedGlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+                                    Deploy-MEMCMPackage -GlobalConfig $GlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
                                 }
                             }
                         }
