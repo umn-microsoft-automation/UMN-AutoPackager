@@ -122,8 +122,10 @@ function Invoke-AutoPackager {
                                 }
 
                                 if ($DeployApp) {
-                                    Write-Information -MessageData "Deploying Application for $($Recipe.Name)"
-                                    Deploy-MEMCMPackage -GlobalConfig $GlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+                                    if (VersionCheck.update) {
+                                        Write-Information -MessageData "Deploying New Application for $($Recipe.Name)"
+                                        Deploy-MEMCMPackage -GlobalConfig $GlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
+                                    }
                                 }
                             }
                         }
