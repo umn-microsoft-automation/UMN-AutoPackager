@@ -122,7 +122,7 @@ function Invoke-AutoPackager {
                                 }
 
                                 if ($DeployApp) {
-                                    if (VersionCheck.update) {
+                                    if ($VersionCheck.update) {
                                         Write-Information -MessageData "Deploying New Application for $($Recipe.Name)"
                                         Deploy-MEMCMPackage -GlobalConfig $GlobalConfig -PackageConfig $UpdatedPackageConfig -SiteTarget $SiteTarget
                                     }
