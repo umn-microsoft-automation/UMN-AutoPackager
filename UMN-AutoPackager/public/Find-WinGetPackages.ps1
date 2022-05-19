@@ -46,25 +46,25 @@ function Find-WinGetPackages {
     foreach ($App in $FindPackages) {
         if ($Id -ne '') {
             if ($App.Id -like $Id) {
-                $OutputObject.Add($App)
+                $null = $OutputObject.Add($App)
             }
         }
 
         if ($Name -ne '') {
             if ($App.Name -like $Name) {
-                $OutputObject.Add($App)
+                $null = $OutputObject.Add($App)
             }
         }
 
         if ($Moniker -ne '') {
             if ($App.Moniker -like $Moniker) {
-                $OutputObject.Add($App)
+                $null = $OutputObject.Add($App)
             }
         }
 
         if ($PathPart -ne '') {
             if ($App.Path -like $PathPart) {
-                $OutputObject.Add($App)
+                $null = $OutputObject.Add($App)
             }
         }
     }

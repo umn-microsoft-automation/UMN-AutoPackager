@@ -20,7 +20,7 @@ function Get-PkgContentLocations {
 
     foreach ($PackagingTarget in $PackageConfig.PackagingTargets) {
         foreach ($DeploymentType in $PackagingTarget.DeploymentTypes) {
-            $ContentLocations.Add($DeploymentType.ContentLocation)
+            $null = $ContentLocations.Add($DeploymentType.ContentLocation)
             $DeploymentType.ReplaceVariable("{contentLocation}", $DeploymentType.ContentLocation)
         }
     }
