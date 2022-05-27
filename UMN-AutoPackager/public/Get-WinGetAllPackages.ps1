@@ -32,10 +32,6 @@ left join pathparts on pathparts.rowid=manifest.pathpart
 
     $RootQuery = "SELECT * FROM pathparts"
 
-    if (-not (Test-Path -Path $Database)) {
-        "WOMP WOMP: $Database"
-    }
-
     $AllApps = Invoke-SqliteQuery -DataSource $Database -Query $AllDataQuery
     $AllPathparts = Invoke-SqliteQuery -DataSource $Database -Query $rootquery
 
