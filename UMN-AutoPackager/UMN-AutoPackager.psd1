@@ -12,7 +12,7 @@
     CmdletsToExport   = '*'
     VariablesToExport = '*'
     AliasesToExport   = '*'
-    RequiredModules   = @('PSSQLite', 'powershell-yaml')
+    RequiredModules   = ''
     PrivateData       = @{
         PSData = @{
             Tags         = @('Automation', 'MEMCM', 'SCCM', 'Intune', 'UMN')
