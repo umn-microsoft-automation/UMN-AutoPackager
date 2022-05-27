@@ -1,3 +1,16 @@
+$ProgressPreference = 'SilentlyContinue'
+
+# Test for needed modules, doing this because of issues publishing module with required modules.
+#PSSQLite
+if (-not (Get-Module -ListAvailable -Name PSSQLite)) {
+    Write-Error -Message "PSSQLite module is not installed. Please install it." -ErrorAction Stop
+}
+
+#powershell-yaml
+if (-not (Get-Module -ListAvailable "powershell-yaml")) {
+    Write-Error -Message "powershell-yaml module is not installed. Please install it." -ErrorAction Stop
+}
+
 $Public = @( Get-ChildItem -Path $PSScriptRoot\public\*.ps1 -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\private\*.ps1 -ErrorAction SilentlyContinue )
 
@@ -9,7 +22,8 @@ else {
 }
 
 # Global Config Path
-$GlobalConfigPath = "$($env:ProgramData)\UMN\AutoPackager\GlobalConfig.json"
+$GlobalConfigDir = "$($env:ProgramData)\UMN\UMN-AutoPackager"
+$GlobalConfigPath = "$GlobalConfigDir\GlobalConfig.json"
 
 foreach ($Import in @($Public + $Private)) {
     try {
@@ -22,13 +36,17 @@ foreach ($Import in @($Public + $Private)) {
 
 if (Test-Path -Path $GlobalConfigPath) {
     $GlobalConfig = Get-UMNGlobalConfig -Path $GlobalConfigPath
+    Write-Verbose -Message "Imported GlobalConfig $GlobalConfig"
 }
 else {
     Write-Error -Message "Could not find a global config at $GlobalConfigPath.`nRun Set-UMNGlobalConfig using the `$GlobalConfigPath variable."
 }
 
+$WinGetPackages = Get-WinGetAllPackages -ForceUpdate
 
-Export-ModuleMember -Variable GlobalConfig, GlobalConfigPath
+Write-Verbose -Message "Imported WinGetPackages $WinGetPackages"
+
+Export-ModuleMember -Variable GlobalConfig, GlobalConfigPath, WinGetPackages
 
 # Export only the powershell functions that are public
 Export-ModuleMember -Function $Public.BaseName
