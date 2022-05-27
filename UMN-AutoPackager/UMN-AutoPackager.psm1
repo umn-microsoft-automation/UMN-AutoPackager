@@ -1,5 +1,16 @@
 $ProgressPreference = 'SilentlyContinue'
 
+# Test for needed modules, doing this because of issues publishing module with required modules.
+#PSSQLite
+if (-not (Get-Module -ListAvailable -Name PSSQLite)) {
+    Write-Error -Message "PSSQLite module is not installed. Please install it." -ErrorAction Stop
+}
+
+#powershell-yaml
+if (-not (Get-Module -ListAvailable "powershell-yaml")) {
+    Write-Error -Message "powershell-yaml module is not installed. Please install it." -ErrorAction Stop
+}
+
 $Public = @( Get-ChildItem -Path $PSScriptRoot\public\*.ps1 -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\private\*.ps1 -ErrorAction SilentlyContinue )
 
