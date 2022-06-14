@@ -45,7 +45,11 @@ function Build-MEMCMPackage {
         Write-Information -MessageData "PSHost = $($host.name)" -Tags Meta
         Write-Information -MessageData "Date = $(Get-Date)" -tags Meta
         Write-Verbose -Message "Starting $($myinvocation.mycommand)"
-        Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
+
+        $SaveVerbosePreference = $global:VerbosePreference
+        $global:VerbosePreference = 'SilentlyContinue'
+        $null = Import-Module -Name $GlobalConfig.MEMCMModulePath.LocalPath -Verbose:$false
+        $global:VerbosePreference = $SaveVerbosePreference
     }
     process {
         Write-Verbose -Message "Processing $($SiteTarget.site) Site..."

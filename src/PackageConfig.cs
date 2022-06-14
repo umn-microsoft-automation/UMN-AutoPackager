@@ -12,6 +12,7 @@ namespace UMNAutoPackager
         public Uri SourcePath { get; set; }
         public string ConfigNotes { get; set; }
         public bool OverridePackagingTargets { get; set; }
+        public string[] DeploymentGroups { get; set; }
         public PackagingTarget[] PackagingTargets { get; set; }
     }
 }
