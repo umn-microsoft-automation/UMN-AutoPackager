@@ -36,7 +36,11 @@ function Deploy-MEMCMPackage {
     )
     begin {
         Write-Verbose -Message "Starting $($myinvocation.mycommand)"
-        Import-Module -Name "$($env:SystemDrive)\Program Files (x86)\Microsoft Endpoint Manager\AdminConsole\bin\ConfigurationManager.psd1"
+
+        $SaveVerbosePreference = $global:VerbosePreference
+        $global:VerbosePreference = 'SilentlyContinue'
+        $null = Import-Module -Name $GlobalConfig.MEMCMModulePath.LocalPath -Verbose:$false
+        $global:VerbosePreference = $SaveVerbosePreference
     }
     process {
         Write-Verbose -Message "Processing $($SiteTarget.site) Site..."
@@ -57,95 +61,116 @@ function Deploy-MEMCMPackage {
             if (Get-CMApplication -Name $PackageConfig.PackagingTargets.name) {
                 Write-Verbose -Message "Application $($PackageConfig.PackagingTargets.name) exists"
                 foreach ($collection in $SiteTarget.collectionTargets) {
-                    Write-Verbose -Message "Checking for deployment settings on Collection Target: $($collection.name)"
-                    if ($collection.DeploymentSettings) {
-                        Write-Verbose -Message "Checking if the collection $($collection.name) exists"
-                        if (Get-CMCollection -Name $collection.Name) {
-                            Write-Verbose -Message "Checking if the collection has any deployments"
-                            if (Get-CMApplicationDeployment -CollectionName $collection.name) {
-                                Write-Verbose -Message "$($collection.name) contains deployments"
-                                $deployments = Get-CMApplicationDeployment -CollectionName "$($collection.name)"
-                                foreach ($deploy in $deployments) {
-                                    if ($deploy.ApplicationName -match $PackageConfig.publisher -and $PackageConfig.ApplicationName -match $SiteTarget.productName) {
-                                        Write-Verbose -Message "$($deploy.ApplicationName) matches the publisher and product name of an existing deployment, removing deployment"
-                                        try {
-                                            Remove-CMApplicationDeployment -Name "$($deploy.ApplicationName)" -CollectionName "$($collection.name)" -Force -ErrorAction Stop
-                                        }
-                                        catch {
-                                            Write-Error $Error[0]
-                                            Write-Warning -Message "Error: $($_.Exception.Message)"
-                                        }
-                                    }
-                                    else {
-                                        Write-Verbose -Message "No matching deployment found"
-                                    }
-                                }
-                            }
-                            else {
-                                Write-Verbose -Message "The collection: $($collection.name) does not have an existing deployment"
-                            }
-                            Write-Verbose -Message "Building deployment..."
-                            $DeploymentArguments = @{
-                                Name                               = $PackageConfig.PackagingTargets[0].name
-                                CollectionName                     = $collection.Name
-                                AllowRepairApp                     = $collection.deploymentSettings.allowRepairApp
-                                DeployAction                       = $collection.deploymentSettings.DeployAction
-                                DeployPurpose                      = $collection.deploymentSettings.DeployPurpose
-                                OverrideServiceWindow              = $collection.deploymentSettings.OverrideServiceWindow
-                                PreDeploy                          = $collection.deploymentSettings.PreDeploy
-                                RebootOutsideServiceWindow         = $collection.deploymentSettings.RebootOutsideServiceWindow
-                                ReplaceToastNotificationWithDialog = $collection.deploymentSettings.ReplaceToastNotificationWithDialog
-                                SendWakeupPacket                   = $collection.deploymentSettings.SendWakeupPacket
-                                TimeBaseOn                         = $collection.deploymentSettings.TimeBaseOn
-                                UserNotification                   = $collection.deploymentSettings.userNotification
-                                AvailableDateTime                  = ""
-                                DeadlineDateTime                   = ""
-                                ErrorAction                        = "Stop"
-                            }
-                            # Setting Date Times for available
-                            if ($collection.deploymentSettings.availStart) {
-                                Write-Verbose -Message "availStart: $($collection.deploymentSettings.availStart)"
-                                $availtime = (Get-Date -Hour $collection.deploymentSettings.availHour -Minute $collection.deploymentSettings.availMinute).AddDays($collection.DeploymentSettings.availstart)
-                                $DeploymentArguments.set_item("AvailableDateTime" , $availtime)
-                            }
-                            else {
-                                Write-Verbose -Message "No availStart setting as current date and time"
-                                $DeploymentArguments.set_item("AvailableDateTime" , (Get-Date))
-                            }
-                            # Setting Date Times for deadline
-                            if ($collection.deploymentSettings.deadlineStart) {
-                                Write-Verbose -Message "deadlineStart: $($collection.deploymentSettings.deadlineStart)"
-                                $deadlinetime = (Get-Date -Hour $collection.deploymentSettings.deadlineHour -Minute $collection.deploymentSettings.deadlineMinute).AddDays($collection.DeploymentSettings.deadlineStart)
-                                $DeploymentArguments.set_item("DeadlineDateTime" , $deadlinetime)
-                            }
-                            else {
-                                Write-Verbose -Message "No deadlineStart"
-                            }
-                            # Removing null or empty values from the hashtable
-                            $list = New-Object System.Collections.ArrayList
-                            foreach ($DepA in $DeploymentArguments.Keys) {
-                                if ([string]::IsNullOrWhiteSpace($DeploymentArguments.$DepA)) {
-                                    $null = $list.Add($DepA)
-                                }
-                            }
-                            foreach ($item in $list) {
-                                $DeploymentArguments.Remove($item)
-                            }
-                            try {
-                                Write-Verbose -Message "Creating deployment of Application: $($PackageConfig.packagingTargets.Name) for collection: $($collection.name)"
-                                New-CMApplicationDeployment @DeploymentArguments
-                            }
-                            catch {
-                                Write-Error $Error[0]
-                                Write-Warning -Message "Error: $($_.Exception.Message)"
+                    $DeploymentGroupsMatch = $false
+                    if (($null -eq $collection.DeploymentGroups) -or ($SiteTarget.DeploymentGroups -eq "")) {
+                        Write-Error -Message "DeploymentGroups is not defined for $($collection.name) Site in the $($SiteTarget.SiteCode)" -ErrorAction
+                    }
+                    else {
+                        if (($null -eq $PackageConfig.DeploymentGroups) -or ($PackageConfig.DeploymentGroups -eq "")) {
+                            Write-Warning -Message "PackageConfig DeploymentGroups is empty or undefined.  Using default deployment groups."
+                            if ($collection.DeploymentGroups -contains "Default") {
+                                $DeploymentGroupsMatch = $true
                             }
                         }
                         else {
-                            Write-Verbose -Message "$($collection.Name) does not exist or is not a MEMCM-Collection type."
+                            foreach ($group in $PackageConfig.DeploymentGroups) {
+                                if ($collection.DeploymentGroups -contains $group) {
+                                    $DeploymentGroupsMatch = $true
+                                }
+                            }
                         }
-                    }
-                    else {
-                        Write-Verbose -Message "$($collection.Name) has no deploymentSettings in JSON"
+                        if ($DeploymentGroupsMatch) {
+                            Write-Verbose -Message "Checking for deployment settings on Collection Target: $($collection.name)"
+                            if ($collection.DeploymentSettings) {
+                                Write-Verbose -Message "Checking if the collection $($collection.name) exists"
+                                if (Get-CMCollection -Name $collection.Name) {
+                                    Write-Verbose -Message "Checking if the collection has any deployments"
+                                    if (Get-CMApplicationDeployment -CollectionName $collection.name) {
+                                        Write-Verbose -Message "$($collection.name) contains deployments"
+                                        $deployments = Get-CMApplicationDeployment -CollectionName "$($collection.name)"
+                                        foreach ($deploy in $deployments) {
+                                            if ($deploy.ApplicationName -match $PackageConfig.publisher -and $PackageConfig.ApplicationName -match $SiteTarget.productName) {
+                                                Write-Verbose -Message "$($deploy.ApplicationName) matches the publisher and product name of an existing deployment, removing deployment"
+                                                try {
+                                                    Remove-CMApplicationDeployment -Name "$($deploy.ApplicationName)" -CollectionName "$($collection.name)" -Force -ErrorAction Stop
+                                                }
+                                                catch {
+                                                    Write-Error $Error[0]
+                                                    Write-Warning -Message "Error: $($_.Exception.Message)"
+                                                }
+                                            }
+                                            else {
+                                                Write-Verbose -Message "No matching deployment found"
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        Write-Verbose -Message "The collection: $($collection.name) does not have an existing deployment"
+                                    }
+                                    Write-Verbose -Message "Building deployment..."
+                                    $DeploymentArguments = @{
+                                        Name                               = $PackageConfig.PackagingTargets[0].name
+                                        CollectionName                     = $collection.Name
+                                        AllowRepairApp                     = $collection.deploymentSettings.allowRepairApp
+                                        DeployAction                       = $collection.deploymentSettings.DeployAction
+                                        DeployPurpose                      = $collection.deploymentSettings.DeployPurpose
+                                        OverrideServiceWindow              = $collection.deploymentSettings.OverrideServiceWindow
+                                        PreDeploy                          = $collection.deploymentSettings.PreDeploy
+                                        RebootOutsideServiceWindow         = $collection.deploymentSettings.RebootOutsideServiceWindow
+                                        ReplaceToastNotificationWithDialog = $collection.deploymentSettings.ReplaceToastNotificationWithDialog
+                                        SendWakeupPacket                   = $collection.deploymentSettings.SendWakeupPacket
+                                        TimeBaseOn                         = $collection.deploymentSettings.TimeBaseOn
+                                        UserNotification                   = $collection.deploymentSettings.userNotification
+                                        AvailableDateTime                  = ""
+                                        DeadlineDateTime                   = ""
+                                        ErrorAction                        = "Stop"
+                                    }
+                                    # Setting Date Times for available
+                                    if ($collection.deploymentSettings.availStart) {
+                                        Write-Verbose -Message "availStart: $($collection.deploymentSettings.availStart)"
+                                        $availtime = (Get-Date -Hour $collection.deploymentSettings.availHour -Minute $collection.deploymentSettings.availMinute).AddDays($collection.DeploymentSettings.availstart)
+                                        $DeploymentArguments.set_item("AvailableDateTime" , $availtime)
+                                    }
+                                    else {
+                                        Write-Verbose -Message "No availStart setting as current date and time"
+                                        $DeploymentArguments.set_item("AvailableDateTime" , (Get-Date))
+                                    }
+                                    # Setting Date Times for deadline
+                                    if ($collection.deploymentSettings.deadlineStart) {
+                                        Write-Verbose -Message "deadlineStart: $($collection.deploymentSettings.deadlineStart)"
+                                        $deadlinetime = (Get-Date -Hour $collection.deploymentSettings.deadlineHour -Minute $collection.deploymentSettings.deadlineMinute).AddDays($collection.DeploymentSettings.deadlineStart)
+                                        $DeploymentArguments.set_item("DeadlineDateTime" , $deadlinetime)
+                                    }
+                                    else {
+                                        Write-Verbose -Message "No deadlineStart"
+                                    }
+                                    # Removing null or empty values from the hashtable
+                                    $list = New-Object System.Collections.ArrayList
+                                    foreach ($DepA in $DeploymentArguments.Keys) {
+                                        if ([string]::IsNullOrWhiteSpace($DeploymentArguments.$DepA)) {
+                                            $null = $list.Add($DepA)
+                                        }
+                                    }
+                                    foreach ($item in $list) {
+                                        $DeploymentArguments.Remove($item)
+                                    }
+                                    try {
+                                        Write-Verbose -Message "Creating deployment of Application: $($PackageConfig.packagingTargets.Name) for collection: $($collection.name)"
+                                        New-CMApplicationDeployment @DeploymentArguments
+                                    }
+                                    catch {
+                                        Write-Error $Error[0]
+                                        Write-Warning -Message "Error: $($_.Exception.Message)"
+                                    }
+                                }
+                                else {
+                                    Write-Verbose -Message "$($collection.Name) does not exist or is not a MEMCM-Collection type."
+                                }
+                            }
+                            else {
+                                Write-Verbose -Message "$($collection.Name) has no deploymentSettings in JSON"
+                            }
+                        }
                     }
                 }#foreach $collections
             }

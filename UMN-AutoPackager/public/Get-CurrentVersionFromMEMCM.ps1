@@ -21,7 +21,11 @@ function Get-CurrentVersionFromMEMCM {
 
     begin {
         Write-Verbose -Message "Starting $($myinvocation.mycommand)"
-        Import-Module -Name $GlobalConfig.MEMCMModulePath.LocalPath
+
+        $SaveVerbosePreference = $global:VerbosePreference
+        $global:VerbosePreference = 'SilentlyContinue'
+        $null = Import-Module -Name $GlobalConfig.MEMCMModulePath.LocalPath -Verbose:$false
+        $global:VerbosePreference = $SaveVerbosePreference
     } process {
         Push-Location
         Write-Verbose -Message "Processing $($SiteTarget.Site) Site..."

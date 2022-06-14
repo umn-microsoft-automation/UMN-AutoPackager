@@ -1,8 +1,11 @@
+using System.Collections;
+
 namespace UMNAutoPackager
 {
     public class CollectionTarget : JsonBase
     {
         public string Type { get; set; }
+        public string[] DeploymentGroups { get; set; }
         public string Name { get; set; }
         public string LimitingCollectionName { get; set; }
         public string RefreshType { get; set; }
