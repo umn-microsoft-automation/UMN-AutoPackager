@@ -14,21 +14,21 @@ pr: none
 
 variables:
 - group: Secrets
-${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
-  - name: release
-    value: ''
-  - name: releaseWordOnly
-    value: ''
-${{ elseif eq(variables['Build.SourceBranchName'], 'beta') }}:
-  - name: release
-    value: '-beta'
-  - name: releaseWordOnly
-    value: 'beta'
-${{ else }}:
-  - name: release
-    value: '-alpha'
-  - name: releaseWordOnly
-    value: 'alpha'
+  ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+    - name: release
+      value: ''
+    - name: releaseWordOnly
+      value: ''
+  ${{ elseif eq(variables['Build.SourceBranchName'], 'beta') }}:
+    - name: release
+      value: '-beta'
+    - name: releaseWordOnly
+      value: 'beta'
+  ${{ else }}:
+    - name: release
+      value: '-alpha'
+    - name: releaseWordOnly
+      value: 'alpha'
 
 # Revision number will be used to indicate patch, will need to manually increment major and minor versions.
 name: '1.0.$(Rev:r)$(release)' # Build number is 1.0.Rev (example 1.0.3)
