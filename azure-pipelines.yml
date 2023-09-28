@@ -13,7 +13,7 @@ trigger:
 pr: none
 
 variables:
-- group: Secrets
+  - group: Secrets
   ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
     - name: release
       value: ''
