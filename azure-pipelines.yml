@@ -13,15 +13,21 @@ trigger:
 pr: none
 
 variables:
-  ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
-    release: ''
-    releaseWordOnly: ''
-  ${{ elseif eq(variables['Build.SourceBranchName'], 'beta') }}:
-    release: '-beta'
-    releaseWordOnly: 'beta'
-  ${{ else }}:
-    release: '-alpha'
-    releaseWordOnly: 'alpha'
+  - name: release
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: ''
+    ${{ elseif eq(variables['Build.SourceBranchName'], 'beta') }}:
+      value: '-beta'
+    ${{ else }}:
+      value: '-alpha'
+  - name: releaseWordOnly
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: ''
+    ${{ elseif eq(variables['Build.SourceBranchName'], 'beta') }}:
+      value: 'beta'
+    ${{ else }}:
+      value: 'alpha'
+  - group: Secrets
 
 # Revision number will be used to indicate patch, will need to manually increment major and minor versions.
 name: '1.0.$(Rev:r)$(release)' # Build number is 1.0.Rev (example 1.0.3)
