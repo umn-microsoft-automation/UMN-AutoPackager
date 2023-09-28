@@ -13,20 +13,19 @@ trigger:
 pr: none
 
 variables:
-  ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
-    - name: release
+  - name: release
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
       value: ''
-    - name: releaseWordOnly
-      value: ''
-  ${{ elseif eq(variables['Build.SourceBranchName'], 'beta') }}:
-    - name: release
+    ${{ elseif eq(variables['Build.SourceBranchName'], 'beta') }}:
       value: '-beta'
-    - name: releaseWordOnly
-      value: 'beta'
-  ${{ else }}:
-    - name: release
+    ${{ else }}:
       value: '-alpha'
-    - name: releaseWordOnly
+  - name: releaseWordOnly
+    ${{ if eq(variables['Build.SourceBranchName'], 'main') }}:
+      value: ''
+    ${{ elseif eq(variables['Build.SourceBranchName'], 'beta') }}:
+      value: 'beta'
+    ${{ else }}:
       value: 'alpha'
   - group: Secrets
 
