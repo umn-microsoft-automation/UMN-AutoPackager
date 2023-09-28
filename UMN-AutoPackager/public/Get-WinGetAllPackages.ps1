@@ -54,7 +54,7 @@ left join pathparts on pathparts.rowid=manifest.pathpart
             $PathBuilder = $Parent
         } while ($null -ne $PathBuilder)
 
-        $AppManifestPath = "https://winget.azureedge.net/cache/" + $AppManifestPath
+        $AppManifestPath = "https://cdn.winget.microsoft.com/cache/" + $AppManifestPath
         $null = $OutputObject.Add((New-Object PSObject -Property ([ordered]@{
                         RowId        = $App.rowid
                         Id           = $App.id
