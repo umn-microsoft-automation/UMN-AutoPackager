@@ -15,7 +15,7 @@ function Update-WinGetPkgSource {
         New-Item -Path $Path -Force -ItemType Directory
     }
 
-    $null = Invoke-WebRequest -Uri "https://winget.azureedge.net/cache/source.msix" -OutFile "$Path\source.msix" -PassThru
+    $null = Invoke-WebRequest -Uri "https://cdn.winget.microsoft.com/cache/source.msix" -OutFile "$Path\source.msix" -PassThru
     $null = Expand-Archive -Path "$Path\source.msix" -DestinationPath "$Path\source" -Force -PassThru
 
     return "$Path\source\Public\index.db"
